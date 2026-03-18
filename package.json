@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@faker-js/faker": "^10.3.0",
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@prisma/config": "^7.5.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "dotenv": "^17.3.1",
+    "prisma": "^7.5.0",
+    "typescript": "^5.9.3"
+  }
+}
