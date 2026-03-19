@@ -9,7 +9,7 @@ datasource db {
 
 model Address {
   id           String  @id
-  userId       String
+  userId       String  @db.Uuid
   addressLine1 String
   addressLine2 String
   city         String
@@ -22,7 +22,7 @@ model Address {
 
 model Cart {
   id        String     @id
-  userId    String     @unique
+  userId    String     @unique @db.Uuid
   createdAt DateTime   @default(now())
   User      User       @relation(fields: [userId], references: [id])
   CartItem  CartItem[]
@@ -55,7 +55,7 @@ model Inventory {
 
 model Order {
   id          String      @id
-  userId      String
+  userId      String      @db.Uuid
   status      String
   totalAmount Decimal     @db.Decimal(10, 2)
   createdAt   DateTime    @default(now())
@@ -101,7 +101,7 @@ model Product {
 
 model Review {
   id        String   @id
-  userId    String
+  userId    String   @db.Uuid
   productId String
   rating    Int
   comment   String
