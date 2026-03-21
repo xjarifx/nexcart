@@ -184,7 +184,7 @@ export type UserWhereInput = {
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
-  id?: Prisma.StringFilter<"User"> | string
+  id?: Prisma.UuidFilter<"User"> | string
   name?: Prisma.StringFilter<"User"> | string
   email?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringFilter<"User"> | string
@@ -241,7 +241,7 @@ export type UserScalarWhereWithAggregatesInput = {
   AND?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[]
   OR?: Prisma.UserScalarWhereWithAggregatesInput[]
   NOT?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[]
-  id?: Prisma.StringWithAggregatesFilter<"User"> | string
+  id?: Prisma.UuidWithAggregatesFilter<"User"> | string
   name?: Prisma.StringWithAggregatesFilter<"User"> | string
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
@@ -250,7 +250,7 @@ export type UserScalarWhereWithAggregatesInput = {
 }
 
 export type UserCreateInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -263,7 +263,7 @@ export type UserCreateInput = {
 }
 
 export type UserUncheckedCreateInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -302,7 +302,7 @@ export type UserUncheckedUpdateInput = {
 }
 
 export type UserCreateManyInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -417,7 +417,7 @@ export type UserUpdateOneRequiredWithoutReviewNestedInput = {
 }
 
 export type UserCreateWithoutAddressInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -429,7 +429,7 @@ export type UserCreateWithoutAddressInput = {
 }
 
 export type UserUncheckedCreateWithoutAddressInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -481,7 +481,7 @@ export type UserUncheckedUpdateWithoutAddressInput = {
 }
 
 export type UserCreateWithoutCartInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -493,7 +493,7 @@ export type UserCreateWithoutCartInput = {
 }
 
 export type UserUncheckedCreateWithoutCartInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -545,7 +545,7 @@ export type UserUncheckedUpdateWithoutCartInput = {
 }
 
 export type UserCreateWithoutOrderInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -557,7 +557,7 @@ export type UserCreateWithoutOrderInput = {
 }
 
 export type UserUncheckedCreateWithoutOrderInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -609,7 +609,7 @@ export type UserUncheckedUpdateWithoutOrderInput = {
 }
 
 export type UserCreateWithoutReviewInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string
@@ -621,7 +621,7 @@ export type UserCreateWithoutReviewInput = {
 }
 
 export type UserUncheckedCreateWithoutReviewInput = {
-  id: string
+  id?: string
   name: string
   email: string
   passwordHash: string

@@ -206,7 +206,7 @@ export type AddressWhereInput = {
   OR?: Prisma.AddressWhereInput[]
   NOT?: Prisma.AddressWhereInput | Prisma.AddressWhereInput[]
   id?: Prisma.StringFilter<"Address"> | string
-  userId?: Prisma.StringFilter<"Address"> | string
+  userId?: Prisma.UuidFilter<"Address"> | string
   addressLine1?: Prisma.StringFilter<"Address"> | string
   addressLine2?: Prisma.StringFilter<"Address"> | string
   city?: Prisma.StringFilter<"Address"> | string
@@ -235,7 +235,7 @@ export type AddressWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.AddressWhereInput | Prisma.AddressWhereInput[]
   OR?: Prisma.AddressWhereInput[]
   NOT?: Prisma.AddressWhereInput | Prisma.AddressWhereInput[]
-  userId?: Prisma.StringFilter<"Address"> | string
+  userId?: Prisma.UuidFilter<"Address"> | string
   addressLine1?: Prisma.StringFilter<"Address"> | string
   addressLine2?: Prisma.StringFilter<"Address"> | string
   city?: Prisma.StringFilter<"Address"> | string
@@ -266,7 +266,7 @@ export type AddressScalarWhereWithAggregatesInput = {
   OR?: Prisma.AddressScalarWhereWithAggregatesInput[]
   NOT?: Prisma.AddressScalarWhereWithAggregatesInput | Prisma.AddressScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Address"> | string
-  userId?: Prisma.StringWithAggregatesFilter<"Address"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"Address"> | string
   addressLine1?: Prisma.StringWithAggregatesFilter<"Address"> | string
   addressLine2?: Prisma.StringWithAggregatesFilter<"Address"> | string
   city?: Prisma.StringWithAggregatesFilter<"Address"> | string
@@ -508,7 +508,7 @@ export type AddressScalarWhereInput = {
   OR?: Prisma.AddressScalarWhereInput[]
   NOT?: Prisma.AddressScalarWhereInput | Prisma.AddressScalarWhereInput[]
   id?: Prisma.StringFilter<"Address"> | string
-  userId?: Prisma.StringFilter<"Address"> | string
+  userId?: Prisma.UuidFilter<"Address"> | string
   addressLine1?: Prisma.StringFilter<"Address"> | string
   addressLine2?: Prisma.StringFilter<"Address"> | string
   city?: Prisma.StringFilter<"Address"> | string

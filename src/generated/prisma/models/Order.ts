@@ -212,7 +212,7 @@ export type OrderWhereInput = {
   OR?: Prisma.OrderWhereInput[]
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   id?: Prisma.StringFilter<"Order"> | string
-  userId?: Prisma.StringFilter<"Order"> | string
+  userId?: Prisma.UuidFilter<"Order"> | string
   status?: Prisma.StringFilter<"Order"> | string
   totalAmount?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
@@ -237,7 +237,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   OR?: Prisma.OrderWhereInput[]
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
-  userId?: Prisma.StringFilter<"Order"> | string
+  userId?: Prisma.UuidFilter<"Order"> | string
   status?: Prisma.StringFilter<"Order"> | string
   totalAmount?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
@@ -264,7 +264,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   OR?: Prisma.OrderScalarWhereWithAggregatesInput[]
   NOT?: Prisma.OrderScalarWhereWithAggregatesInput | Prisma.OrderScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Order"> | string
-  userId?: Prisma.StringWithAggregatesFilter<"Order"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"Order"> | string
   status?: Prisma.StringWithAggregatesFilter<"Order"> | string
   totalAmount?: Prisma.DecimalWithAggregatesFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
@@ -611,7 +611,7 @@ export type OrderScalarWhereInput = {
   OR?: Prisma.OrderScalarWhereInput[]
   NOT?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
   id?: Prisma.StringFilter<"Order"> | string
-  userId?: Prisma.StringFilter<"Order"> | string
+  userId?: Prisma.UuidFilter<"Order"> | string
   status?: Prisma.StringFilter<"Order"> | string
   totalAmount?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string

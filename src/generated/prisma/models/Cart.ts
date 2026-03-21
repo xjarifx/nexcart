@@ -164,7 +164,7 @@ export type CartWhereInput = {
   OR?: Prisma.CartWhereInput[]
   NOT?: Prisma.CartWhereInput | Prisma.CartWhereInput[]
   id?: Prisma.StringFilter<"Cart"> | string
-  userId?: Prisma.StringFilter<"Cart"> | string
+  userId?: Prisma.UuidFilter<"Cart"> | string
   createdAt?: Prisma.DateTimeFilter<"Cart"> | Date | string
   User?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   CartItem?: Prisma.CartItemListRelationFilter
@@ -203,7 +203,7 @@ export type CartScalarWhereWithAggregatesInput = {
   OR?: Prisma.CartScalarWhereWithAggregatesInput[]
   NOT?: Prisma.CartScalarWhereWithAggregatesInput | Prisma.CartScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Cart"> | string
-  userId?: Prisma.StringWithAggregatesFilter<"Cart"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"Cart"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Cart"> | Date | string
 }
 
