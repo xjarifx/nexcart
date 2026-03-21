@@ -6,5 +6,22 @@ export const createUserRepository = async (
   name: string,
   phone: string,
 ) => {
-  // Logic to create a new user in the database
+  const user = await prisma.user.create({
+    data: {
+      email,
+      passwordHash: password,
+      name,
+      phone,
+    },
+  });
+  return user;
+};
+
+export const findUserByEmailRepository = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+  return user;
 };

@@ -1,4 +1,9 @@
 import { createUserValidation } from "./auth.validation.js";
+import {
+  createUserRepository,
+  findUserByEmailRepository,
+} from "./auth.repository.js";
+import bcrypt from "bcryptjs";
 
 export const createUserService = async (
   email: string,
@@ -21,8 +26,22 @@ export const createUserService = async (
     throw new Error("Validation failed");
   }
 
+  // user exists check
+  const isUserExist = await findUserByEmailRepository(validatedData.email);
+  if (isUserExist) {
+    throw new Error("User already exists");
+  }
+
   try {
-    // repository call to create user
+    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+
+    const user = await createUserRepository(
+      validatedData.email,
+      hashedPassword,
+      validatedData.name,
+      validatedData.phone,
+    );
+    return user;
   } catch (error) {
     console.error("Error creating user:", error);
     throw new Error("Internal server error");

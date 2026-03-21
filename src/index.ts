@@ -2,8 +2,10 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { Request, Response } from "express";
+import swaggerUi from "swagger-ui-express";
 
 import authRouter from "./modules/auth/auth.route.js";
+import { swaggerSpec } from "./lib/swagger.js";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -29,9 +31,12 @@ app.get("/health", (req, res) => {
 // auth routes
 app.use("/api/auth", authRouter);
 
+// swagger docs
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // invalid route handler
 app.use((req, res) => {
-  res.status(404).json({ error: "Not Found" });
+  res.status(404).json({ error: "Invalid route" });
 });
 
 // global error handler
