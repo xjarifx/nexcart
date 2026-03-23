@@ -9,7 +9,7 @@ export const createUserRepository = async (
   const user = await prisma.user.create({
     data: {
       email,
-      passwordHash: password,
+      password,
       name,
       phone,
     },

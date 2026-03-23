@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createUserService } from "./auth.service.js";
+import { createUserService, userLoginService } from "./auth.service.js";
 
 export const registerController = async (req: Request, res: Response) => {
   const { email, password, name, phone } = req.body;
@@ -26,5 +26,16 @@ export const loginController = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
+  }
+
+  try {
+    const result = await userLoginService(email, password);
+    res.json({
+      message: "Login successful",
+      token: result.token,
+    });
+  } catch (error) {
+    console.error("Error logging in user:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
