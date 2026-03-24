@@ -8,56 +8,29 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  // Remove all data in correct order
-  await prisma.review.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.payment.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.cartItem.deleteMany();
-  await prisma.cart.deleteMany();
-  await prisma.address.deleteMany();
-  await prisma.inventory.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
+  // Remove all data in dependency-safe order (children before parents).
+  // We keep removing `RefreshToken` here to ensure users can be deleted cleanly;
+  // we do not create any refresh tokens in this seed.
+  await prisma.review.deleteMany(); // depends on user, product
+  await prisma.orderItem.deleteMany(); // depends on order, product, shop
+  await prisma.payment.deleteMany(); // depends on order
+  await prisma.order.deleteMany(); // depends on user, address
+  await prisma.cartItem.deleteMany(); // depends on cart, product
+  await prisma.cart.deleteMany(); // depends on user
+  await prisma.inventory.deleteMany(); // depends on product
+  await prisma.product.deleteMany(); // depends on shop, category
+  await prisma.category.deleteMany(); // can have parent/child
+  await prisma.shop.deleteMany(); // depends on user
+  await prisma.address.deleteMany(); // depends on user
+  await prisma.refreshToken.deleteMany(); // depends on user
   await prisma.user.deleteMany();
-
-  // Categories
-  const categories = Array.from({ length: 10 }).map((_, i) => ({
-    id: faker.string.uuid(),
-    name: faker.commerce.department() + i,
-    parentId: i < 2 ? null : undefined, // first 2 are root
-  }));
-  await prisma.category.createMany({ data: categories });
-
-  // Products
-  const products = Array.from({ length: 30 }).map(() => {
-    const category = faker.helpers.arrayElement(categories);
-    return {
-      id: faker.string.uuid(),
-      name: faker.commerce.productName(),
-      description: faker.commerce.productDescription(),
-      price: parseFloat(faker.commerce.price({ min: 10, max: 500 })),
-      categoryId: category.id,
-      brand: faker.company.name(),
-      createdAt: faker.date.past(),
-    };
-  });
-  await prisma.product.createMany({ data: products });
-
-  // Inventory
-  const inventory = products.map((p) => ({
-    productId: p.id,
-    stockQuantity: faker.number.int({ min: 0, max: 100 }),
-    reservedQuantity: faker.number.int({ min: 0, max: 10 }),
-  }));
-  await prisma.inventory.createMany({ data: inventory });
 
   // Users
   const users = Array.from({ length: 50 }).map(() => ({
     id: faker.string.uuid(),
     name: faker.person.fullName(),
     email: faker.internet.email(),
-    passwordHash: faker.internet.password(),
+    password: faker.internet.password(),
     phone: faker.phone.number(),
     createdAt: faker.date.past(),
   }));
@@ -79,6 +52,64 @@ async function main() {
   );
   await prisma.address.createMany({ data: addresses });
 
+  // Shops (assign a shop to some users)
+  const shopOwners = faker.helpers.arrayElements(users, 8);
+  const shops = shopOwners.map((owner, i) => ({
+    id: faker.string.uuid(),
+    ownerId: owner.id,
+    name: `${owner.name.split(" ")[0]}'s Shop ${i + 1}`,
+    slug: `shop-${owner.id.slice(0, 8)}-${i}`,
+    description: faker.lorem.sentence(),
+    status: faker.helpers.arrayElement(["PENDING", "ACTIVE", "SUSPENDED"]),
+    createdAt: faker.date.past(),
+  }));
+  await prisma.shop.createMany({ data: shops });
+
+  // Categories
+  const categories = Array.from({ length: 10 }).map((_, i) => {
+    const name = `${faker.commerce.department()} ${i}`;
+    return {
+      id: faker.string.uuid(),
+      name,
+      slug: `${name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "")}-${i}`,
+      parentId: i < 2 ? null : undefined,
+    };
+  });
+  await prisma.category.createMany({ data: categories });
+
+  // Products
+  const products = Array.from({ length: 30 }).map((_, idx) => {
+    const category = faker.helpers.arrayElement(categories);
+    const shop = faker.helpers.arrayElement(shops);
+    const name = faker.commerce.productName();
+    return {
+      id: faker.string.uuid(),
+      shopId: shop.id,
+      categoryId: category.id,
+      name,
+      slug: `${name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "")}-${idx}`,
+      description: faker.commerce.productDescription(),
+      price: parseFloat(faker.commerce.price({ min: 10, max: 500 })),
+      brand: faker.company.name(),
+      createdAt: faker.date.past(),
+    };
+  });
+  await prisma.product.createMany({ data: products });
+
+  // Inventory
+  const inventory = products.map((p) => ({
+    productId: p.id,
+    stockQuantity: faker.number.int({ min: 0, max: 100 }),
+    reservedQuantity: faker.number.int({ min: 0, max: 10 }),
+  }));
+  await prisma.inventory.createMany({ data: inventory });
+
   // Carts and CartItems
   const carts = users.map((u) => ({
     id: faker.string.uuid(),
@@ -87,33 +118,41 @@ async function main() {
   }));
   await prisma.cart.createMany({ data: carts });
 
-  const cartItems = carts.flatMap((cart) =>
-    Array.from({ length: faker.number.int({ min: 1, max: 3 }) }).map(() => {
-      const product = faker.helpers.arrayElement(products);
-      return {
-        id: faker.string.uuid(),
-        cartId: cart.id,
-        productId: product.id,
-        quantity: faker.number.int({ min: 1, max: 5 }),
-      };
-    }),
-  );
+  const cartItems = carts.flatMap((cart) => {
+    const count = faker.number.int({ min: 1, max: 3 });
+    const selected = faker.helpers.arrayElements(
+      products,
+      Math.min(count, products.length),
+    );
+    return selected.map((product) => ({
+      id: faker.string.uuid(),
+      cartId: cart.id,
+      productId: product.id,
+      quantity: faker.number.int({ min: 1, max: 5 }),
+    }));
+  });
   await prisma.cartItem.createMany({ data: cartItems });
 
   // Orders, OrderItems, Payments
   const orders = users.flatMap((u) =>
-    Array.from({ length: faker.number.int({ min: 0, max: 2 }) }).map(() => ({
-      id: faker.string.uuid(),
-      userId: u.id,
-      status: faker.helpers.arrayElement([
-        "pending",
-        "paid",
-        "shipped",
-        "delivered",
-      ]),
-      totalAmount: parseFloat(faker.commerce.price({ min: 20, max: 1000 })),
-      createdAt: faker.date.past(),
-    })),
+    Array.from({ length: faker.number.int({ min: 0, max: 2 }) }).map(() => {
+      const userAddresses = addresses.filter((a) => a.userId === u.id);
+      const address = faker.helpers.arrayElement(userAddresses) || addresses[0];
+      return {
+        id: faker.string.uuid(),
+        userId: u.id,
+        addressId: address.id,
+        status: faker.helpers.arrayElement([
+          "PENDING",
+          "CONFIRMED",
+          "SHIPPED",
+          "DELIVERED",
+          "CANCELLED",
+        ]),
+        totalAmount: parseFloat(faker.commerce.price({ min: 20, max: 1000 })),
+        createdAt: faker.date.past(),
+      };
+    }),
   );
   await prisma.order.createMany({ data: orders });
 
@@ -124,6 +163,7 @@ async function main() {
         id: faker.string.uuid(),
         orderId: order.id,
         productId: product.id,
+        shopId: product.shopId,
         priceAtPurchase: product.price,
         quantity: faker.number.int({ min: 1, max: 3 }),
       };
@@ -135,24 +175,32 @@ async function main() {
     id: faker.string.uuid(),
     orderId: order.id,
     paymentMethod: faker.helpers.arrayElement(["card", "paypal", "bank"]),
-    status: faker.helpers.arrayElement(["pending", "completed", "failed"]),
+    status: faker.helpers.arrayElement([
+      "PENDING",
+      "COMPLETED",
+      "FAILED",
+      "REFUNDED",
+    ]),
     transactionId: faker.string.uuid(),
     createdAt: faker.date.past(),
   }));
   await prisma.payment.createMany({ data: payments });
 
-  // Reviews
-  const reviews = Array.from({ length: 50 }).map(() => {
-    const user = faker.helpers.arrayElement(users);
-    const product = faker.helpers.arrayElement(products);
-    return {
+  // Reviews: ensure each (userId, productId) pair is unique by selecting unique products per user
+  const reviews = users.flatMap((u) => {
+    const count = faker.number.int({ min: 0, max: 3 });
+    const selected = faker.helpers.arrayElements(
+      products,
+      Math.min(count, products.length),
+    );
+    return selected.map((product) => ({
       id: faker.string.uuid(),
-      userId: user.id,
+      userId: u.id,
       productId: product.id,
       rating: faker.number.int({ min: 1, max: 5 }),
       comment: faker.lorem.sentence(),
       createdAt: faker.date.past(),
-    };
+    }));
   });
   await prisma.review.createMany({ data: reviews });
 
