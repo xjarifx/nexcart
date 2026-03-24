@@ -1,4 +1,15 @@
+import "dotenv/config";
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+
+// Extend Express Request interface to include 'user'
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
 
 export const authenticationMiddleware = (
   req: Request,
@@ -15,5 +26,15 @@ export const authenticationMiddleware = (
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  next();
+  jwt.verify(
+    token,
+    process.env.JWT_SECRET as string,
+    (err: any, decoded: any) => {
+      if (err) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      req.user = decoded;
+      next();
+    },
+  );
 };
