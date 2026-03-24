@@ -31,8 +31,8 @@ export * from "./enums.js"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Addresses
- * const addresses = await prisma.address.findMany()
+ * // Fetch zero or more Users
+ * const users = await prisma.user.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -42,10 +42,40 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
+/**
+ * Model RefreshToken
+ * 
+ */
+export type RefreshToken = Prisma.RefreshTokenModel
+/**
  * Model Address
  * 
  */
 export type Address = Prisma.AddressModel
+/**
+ * Model Shop
+ * 
+ */
+export type Shop = Prisma.ShopModel
+/**
+ * Model Category
+ * 
+ */
+export type Category = Prisma.CategoryModel
+/**
+ * Model Product
+ * 
+ */
+export type Product = Prisma.ProductModel
+/**
+ * Model Inventory
+ * 
+ */
+export type Inventory = Prisma.InventoryModel
 /**
  * Model Cart
  * 
@@ -56,16 +86,6 @@ export type Cart = Prisma.CartModel
  * 
  */
 export type CartItem = Prisma.CartItemModel
-/**
- * Model Category
- * 
- */
-export type Category = Prisma.CategoryModel
-/**
- * Model Inventory
- * 
- */
-export type Inventory = Prisma.InventoryModel
 /**
  * Model Order
  * 
@@ -82,17 +102,7 @@ export type OrderItem = Prisma.OrderItemModel
  */
 export type Payment = Prisma.PaymentModel
 /**
- * Model Product
- * 
- */
-export type Product = Prisma.ProductModel
-/**
  * Model Review
  * 
  */
 export type Review = Prisma.ReviewModel
-/**
- * Model User
- * 
- */
-export type User = Prisma.UserModel

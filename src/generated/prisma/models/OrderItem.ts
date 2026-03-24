@@ -27,73 +27,79 @@ export type AggregateOrderItem = {
 }
 
 export type OrderItemAvgAggregateOutputType = {
-  priceAtPurchase: runtime.Decimal | null
   quantity: number | null
+  priceAtPurchase: runtime.Decimal | null
 }
 
 export type OrderItemSumAggregateOutputType = {
-  priceAtPurchase: runtime.Decimal | null
   quantity: number | null
+  priceAtPurchase: runtime.Decimal | null
 }
 
 export type OrderItemMinAggregateOutputType = {
   id: string | null
   orderId: string | null
   productId: string | null
-  priceAtPurchase: runtime.Decimal | null
+  shopId: string | null
   quantity: number | null
+  priceAtPurchase: runtime.Decimal | null
 }
 
 export type OrderItemMaxAggregateOutputType = {
   id: string | null
   orderId: string | null
   productId: string | null
-  priceAtPurchase: runtime.Decimal | null
+  shopId: string | null
   quantity: number | null
+  priceAtPurchase: runtime.Decimal | null
 }
 
 export type OrderItemCountAggregateOutputType = {
   id: number
   orderId: number
   productId: number
-  priceAtPurchase: number
+  shopId: number
   quantity: number
+  priceAtPurchase: number
   _all: number
 }
 
 
 export type OrderItemAvgAggregateInputType = {
-  priceAtPurchase?: true
   quantity?: true
+  priceAtPurchase?: true
 }
 
 export type OrderItemSumAggregateInputType = {
-  priceAtPurchase?: true
   quantity?: true
+  priceAtPurchase?: true
 }
 
 export type OrderItemMinAggregateInputType = {
   id?: true
   orderId?: true
   productId?: true
-  priceAtPurchase?: true
+  shopId?: true
   quantity?: true
+  priceAtPurchase?: true
 }
 
 export type OrderItemMaxAggregateInputType = {
   id?: true
   orderId?: true
   productId?: true
-  priceAtPurchase?: true
+  shopId?: true
   quantity?: true
+  priceAtPurchase?: true
 }
 
 export type OrderItemCountAggregateInputType = {
   id?: true
   orderId?: true
   productId?: true
-  priceAtPurchase?: true
+  shopId?: true
   quantity?: true
+  priceAtPurchase?: true
   _all?: true
 }
 
@@ -187,8 +193,9 @@ export type OrderItemGroupByOutputType = {
   id: string
   orderId: string
   productId: string
-  priceAtPurchase: runtime.Decimal
+  shopId: string
   quantity: number
+  priceAtPurchase: runtime.Decimal
   _count: OrderItemCountAggregateOutputType | null
   _avg: OrderItemAvgAggregateOutputType | null
   _sum: OrderItemSumAggregateOutputType | null
@@ -215,23 +222,27 @@ export type OrderItemWhereInput = {
   AND?: Prisma.OrderItemWhereInput | Prisma.OrderItemWhereInput[]
   OR?: Prisma.OrderItemWhereInput[]
   NOT?: Prisma.OrderItemWhereInput | Prisma.OrderItemWhereInput[]
-  id?: Prisma.StringFilter<"OrderItem"> | string
-  orderId?: Prisma.StringFilter<"OrderItem"> | string
-  productId?: Prisma.StringFilter<"OrderItem"> | string
-  priceAtPurchase?: Prisma.DecimalFilter<"OrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  id?: Prisma.UuidFilter<"OrderItem"> | string
+  orderId?: Prisma.UuidFilter<"OrderItem"> | string
+  productId?: Prisma.UuidFilter<"OrderItem"> | string
+  shopId?: Prisma.UuidFilter<"OrderItem"> | string
   quantity?: Prisma.IntFilter<"OrderItem"> | number
-  Order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
-  Product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  priceAtPurchase?: Prisma.DecimalFilter<"OrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
+  product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  shop?: Prisma.XOR<Prisma.ShopScalarRelationFilter, Prisma.ShopWhereInput>
 }
 
 export type OrderItemOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   orderId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
-  priceAtPurchase?: Prisma.SortOrder
+  shopId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
-  Order?: Prisma.OrderOrderByWithRelationInput
-  Product?: Prisma.ProductOrderByWithRelationInput
+  priceAtPurchase?: Prisma.SortOrder
+  order?: Prisma.OrderOrderByWithRelationInput
+  product?: Prisma.ProductOrderByWithRelationInput
+  shop?: Prisma.ShopOrderByWithRelationInput
 }
 
 export type OrderItemWhereUniqueInput = Prisma.AtLeast<{
@@ -239,20 +250,23 @@ export type OrderItemWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.OrderItemWhereInput | Prisma.OrderItemWhereInput[]
   OR?: Prisma.OrderItemWhereInput[]
   NOT?: Prisma.OrderItemWhereInput | Prisma.OrderItemWhereInput[]
-  orderId?: Prisma.StringFilter<"OrderItem"> | string
-  productId?: Prisma.StringFilter<"OrderItem"> | string
-  priceAtPurchase?: Prisma.DecimalFilter<"OrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  orderId?: Prisma.UuidFilter<"OrderItem"> | string
+  productId?: Prisma.UuidFilter<"OrderItem"> | string
+  shopId?: Prisma.UuidFilter<"OrderItem"> | string
   quantity?: Prisma.IntFilter<"OrderItem"> | number
-  Order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
-  Product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  priceAtPurchase?: Prisma.DecimalFilter<"OrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
+  product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  shop?: Prisma.XOR<Prisma.ShopScalarRelationFilter, Prisma.ShopWhereInput>
 }, "id">
 
 export type OrderItemOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   orderId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
-  priceAtPurchase?: Prisma.SortOrder
+  shopId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  priceAtPurchase?: Prisma.SortOrder
   _count?: Prisma.OrderItemCountOrderByAggregateInput
   _avg?: Prisma.OrderItemAvgOrderByAggregateInput
   _max?: Prisma.OrderItemMaxOrderByAggregateInput
@@ -264,65 +278,72 @@ export type OrderItemScalarWhereWithAggregatesInput = {
   AND?: Prisma.OrderItemScalarWhereWithAggregatesInput | Prisma.OrderItemScalarWhereWithAggregatesInput[]
   OR?: Prisma.OrderItemScalarWhereWithAggregatesInput[]
   NOT?: Prisma.OrderItemScalarWhereWithAggregatesInput | Prisma.OrderItemScalarWhereWithAggregatesInput[]
-  id?: Prisma.StringWithAggregatesFilter<"OrderItem"> | string
-  orderId?: Prisma.StringWithAggregatesFilter<"OrderItem"> | string
-  productId?: Prisma.StringWithAggregatesFilter<"OrderItem"> | string
-  priceAtPurchase?: Prisma.DecimalWithAggregatesFilter<"OrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  id?: Prisma.UuidWithAggregatesFilter<"OrderItem"> | string
+  orderId?: Prisma.UuidWithAggregatesFilter<"OrderItem"> | string
+  productId?: Prisma.UuidWithAggregatesFilter<"OrderItem"> | string
+  shopId?: Prisma.UuidWithAggregatesFilter<"OrderItem"> | string
   quantity?: Prisma.IntWithAggregatesFilter<"OrderItem"> | number
+  priceAtPurchase?: Prisma.DecimalWithAggregatesFilter<"OrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemCreateInput = {
-  id: string
-  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  id?: string
   quantity: number
-  Order: Prisma.OrderCreateNestedOneWithoutOrderItemInput
-  Product: Prisma.ProductCreateNestedOneWithoutOrderItemInput
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  order: Prisma.OrderCreateNestedOneWithoutItemsInput
+  product: Prisma.ProductCreateNestedOneWithoutOrderItemsInput
+  shop: Prisma.ShopCreateNestedOneWithoutOrderItemsInput
 }
 
 export type OrderItemUncheckedCreateInput = {
-  id: string
+  id?: string
   orderId: string
   productId: string
-  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  shopId: string
   quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  Order?: Prisma.OrderUpdateOneRequiredWithoutOrderItemNestedInput
-  Product?: Prisma.ProductUpdateOneRequiredWithoutOrderItemNestedInput
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  order?: Prisma.OrderUpdateOneRequiredWithoutItemsNestedInput
+  product?: Prisma.ProductUpdateOneRequiredWithoutOrderItemsNestedInput
+  shop?: Prisma.ShopUpdateOneRequiredWithoutOrderItemsNestedInput
 }
 
 export type OrderItemUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  shopId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemCreateManyInput = {
-  id: string
+  id?: string
   orderId: string
   productId: string
-  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  shopId: string
   quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  shopId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemListRelationFilter = {
@@ -339,75 +360,78 @@ export type OrderItemCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   orderId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
-  priceAtPurchase?: Prisma.SortOrder
+  shopId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  priceAtPurchase?: Prisma.SortOrder
 }
 
 export type OrderItemAvgOrderByAggregateInput = {
-  priceAtPurchase?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  priceAtPurchase?: Prisma.SortOrder
 }
 
 export type OrderItemMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   orderId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
-  priceAtPurchase?: Prisma.SortOrder
+  shopId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  priceAtPurchase?: Prisma.SortOrder
 }
 
 export type OrderItemMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   orderId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
-  priceAtPurchase?: Prisma.SortOrder
+  shopId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  priceAtPurchase?: Prisma.SortOrder
 }
 
 export type OrderItemSumOrderByAggregateInput = {
-  priceAtPurchase?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  priceAtPurchase?: Prisma.SortOrder
 }
 
-export type OrderItemCreateNestedManyWithoutOrderInput = {
-  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput> | Prisma.OrderItemCreateWithoutOrderInput[] | Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
-  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutOrderInput | Prisma.OrderItemCreateOrConnectWithoutOrderInput[]
-  createMany?: Prisma.OrderItemCreateManyOrderInputEnvelope
+export type OrderItemCreateNestedManyWithoutShopInput = {
+  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutShopInput, Prisma.OrderItemUncheckedCreateWithoutShopInput> | Prisma.OrderItemCreateWithoutShopInput[] | Prisma.OrderItemUncheckedCreateWithoutShopInput[]
+  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutShopInput | Prisma.OrderItemCreateOrConnectWithoutShopInput[]
+  createMany?: Prisma.OrderItemCreateManyShopInputEnvelope
   connect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
 }
 
-export type OrderItemUncheckedCreateNestedManyWithoutOrderInput = {
-  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput> | Prisma.OrderItemCreateWithoutOrderInput[] | Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
-  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutOrderInput | Prisma.OrderItemCreateOrConnectWithoutOrderInput[]
-  createMany?: Prisma.OrderItemCreateManyOrderInputEnvelope
+export type OrderItemUncheckedCreateNestedManyWithoutShopInput = {
+  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutShopInput, Prisma.OrderItemUncheckedCreateWithoutShopInput> | Prisma.OrderItemCreateWithoutShopInput[] | Prisma.OrderItemUncheckedCreateWithoutShopInput[]
+  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutShopInput | Prisma.OrderItemCreateOrConnectWithoutShopInput[]
+  createMany?: Prisma.OrderItemCreateManyShopInputEnvelope
   connect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
 }
 
-export type OrderItemUpdateManyWithoutOrderNestedInput = {
-  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput> | Prisma.OrderItemCreateWithoutOrderInput[] | Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
-  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutOrderInput | Prisma.OrderItemCreateOrConnectWithoutOrderInput[]
-  upsert?: Prisma.OrderItemUpsertWithWhereUniqueWithoutOrderInput | Prisma.OrderItemUpsertWithWhereUniqueWithoutOrderInput[]
-  createMany?: Prisma.OrderItemCreateManyOrderInputEnvelope
+export type OrderItemUpdateManyWithoutShopNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutShopInput, Prisma.OrderItemUncheckedCreateWithoutShopInput> | Prisma.OrderItemCreateWithoutShopInput[] | Prisma.OrderItemUncheckedCreateWithoutShopInput[]
+  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutShopInput | Prisma.OrderItemCreateOrConnectWithoutShopInput[]
+  upsert?: Prisma.OrderItemUpsertWithWhereUniqueWithoutShopInput | Prisma.OrderItemUpsertWithWhereUniqueWithoutShopInput[]
+  createMany?: Prisma.OrderItemCreateManyShopInputEnvelope
   set?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
   disconnect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
   delete?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
   connect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
-  update?: Prisma.OrderItemUpdateWithWhereUniqueWithoutOrderInput | Prisma.OrderItemUpdateWithWhereUniqueWithoutOrderInput[]
-  updateMany?: Prisma.OrderItemUpdateManyWithWhereWithoutOrderInput | Prisma.OrderItemUpdateManyWithWhereWithoutOrderInput[]
+  update?: Prisma.OrderItemUpdateWithWhereUniqueWithoutShopInput | Prisma.OrderItemUpdateWithWhereUniqueWithoutShopInput[]
+  updateMany?: Prisma.OrderItemUpdateManyWithWhereWithoutShopInput | Prisma.OrderItemUpdateManyWithWhereWithoutShopInput[]
   deleteMany?: Prisma.OrderItemScalarWhereInput | Prisma.OrderItemScalarWhereInput[]
 }
 
-export type OrderItemUncheckedUpdateManyWithoutOrderNestedInput = {
-  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput> | Prisma.OrderItemCreateWithoutOrderInput[] | Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
-  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutOrderInput | Prisma.OrderItemCreateOrConnectWithoutOrderInput[]
-  upsert?: Prisma.OrderItemUpsertWithWhereUniqueWithoutOrderInput | Prisma.OrderItemUpsertWithWhereUniqueWithoutOrderInput[]
-  createMany?: Prisma.OrderItemCreateManyOrderInputEnvelope
+export type OrderItemUncheckedUpdateManyWithoutShopNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutShopInput, Prisma.OrderItemUncheckedCreateWithoutShopInput> | Prisma.OrderItemCreateWithoutShopInput[] | Prisma.OrderItemUncheckedCreateWithoutShopInput[]
+  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutShopInput | Prisma.OrderItemCreateOrConnectWithoutShopInput[]
+  upsert?: Prisma.OrderItemUpsertWithWhereUniqueWithoutShopInput | Prisma.OrderItemUpsertWithWhereUniqueWithoutShopInput[]
+  createMany?: Prisma.OrderItemCreateManyShopInputEnvelope
   set?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
   disconnect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
   delete?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
   connect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
-  update?: Prisma.OrderItemUpdateWithWhereUniqueWithoutOrderInput | Prisma.OrderItemUpdateWithWhereUniqueWithoutOrderInput[]
-  updateMany?: Prisma.OrderItemUpdateManyWithWhereWithoutOrderInput | Prisma.OrderItemUpdateManyWithWhereWithoutOrderInput[]
+  update?: Prisma.OrderItemUpdateWithWhereUniqueWithoutShopInput | Prisma.OrderItemUpdateWithWhereUniqueWithoutShopInput[]
+  updateMany?: Prisma.OrderItemUpdateManyWithWhereWithoutShopInput | Prisma.OrderItemUpdateManyWithWhereWithoutShopInput[]
   deleteMany?: Prisma.OrderItemScalarWhereInput | Prisma.OrderItemScalarWhereInput[]
 }
 
@@ -453,69 +477,116 @@ export type OrderItemUncheckedUpdateManyWithoutProductNestedInput = {
   deleteMany?: Prisma.OrderItemScalarWhereInput | Prisma.OrderItemScalarWhereInput[]
 }
 
-export type OrderItemCreateWithoutOrderInput = {
-  id: string
-  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
-  quantity: number
-  Product: Prisma.ProductCreateNestedOneWithoutOrderItemInput
+export type OrderItemCreateNestedManyWithoutOrderInput = {
+  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput> | Prisma.OrderItemCreateWithoutOrderInput[] | Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
+  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutOrderInput | Prisma.OrderItemCreateOrConnectWithoutOrderInput[]
+  createMany?: Prisma.OrderItemCreateManyOrderInputEnvelope
+  connect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
 }
 
-export type OrderItemUncheckedCreateWithoutOrderInput = {
-  id: string
+export type OrderItemUncheckedCreateNestedManyWithoutOrderInput = {
+  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput> | Prisma.OrderItemCreateWithoutOrderInput[] | Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
+  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutOrderInput | Prisma.OrderItemCreateOrConnectWithoutOrderInput[]
+  createMany?: Prisma.OrderItemCreateManyOrderInputEnvelope
+  connect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
+}
+
+export type OrderItemUpdateManyWithoutOrderNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput> | Prisma.OrderItemCreateWithoutOrderInput[] | Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
+  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutOrderInput | Prisma.OrderItemCreateOrConnectWithoutOrderInput[]
+  upsert?: Prisma.OrderItemUpsertWithWhereUniqueWithoutOrderInput | Prisma.OrderItemUpsertWithWhereUniqueWithoutOrderInput[]
+  createMany?: Prisma.OrderItemCreateManyOrderInputEnvelope
+  set?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
+  disconnect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
+  delete?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
+  connect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
+  update?: Prisma.OrderItemUpdateWithWhereUniqueWithoutOrderInput | Prisma.OrderItemUpdateWithWhereUniqueWithoutOrderInput[]
+  updateMany?: Prisma.OrderItemUpdateManyWithWhereWithoutOrderInput | Prisma.OrderItemUpdateManyWithWhereWithoutOrderInput[]
+  deleteMany?: Prisma.OrderItemScalarWhereInput | Prisma.OrderItemScalarWhereInput[]
+}
+
+export type OrderItemUncheckedUpdateManyWithoutOrderNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput> | Prisma.OrderItemCreateWithoutOrderInput[] | Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
+  connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutOrderInput | Prisma.OrderItemCreateOrConnectWithoutOrderInput[]
+  upsert?: Prisma.OrderItemUpsertWithWhereUniqueWithoutOrderInput | Prisma.OrderItemUpsertWithWhereUniqueWithoutOrderInput[]
+  createMany?: Prisma.OrderItemCreateManyOrderInputEnvelope
+  set?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
+  disconnect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
+  delete?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
+  connect?: Prisma.OrderItemWhereUniqueInput | Prisma.OrderItemWhereUniqueInput[]
+  update?: Prisma.OrderItemUpdateWithWhereUniqueWithoutOrderInput | Prisma.OrderItemUpdateWithWhereUniqueWithoutOrderInput[]
+  updateMany?: Prisma.OrderItemUpdateManyWithWhereWithoutOrderInput | Prisma.OrderItemUpdateManyWithWhereWithoutOrderInput[]
+  deleteMany?: Prisma.OrderItemScalarWhereInput | Prisma.OrderItemScalarWhereInput[]
+}
+
+export type OrderItemCreateWithoutShopInput = {
+  id?: string
+  quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  order: Prisma.OrderCreateNestedOneWithoutItemsInput
+  product: Prisma.ProductCreateNestedOneWithoutOrderItemsInput
+}
+
+export type OrderItemUncheckedCreateWithoutShopInput = {
+  id?: string
+  orderId: string
   productId: string
-  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
   quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
-export type OrderItemCreateOrConnectWithoutOrderInput = {
+export type OrderItemCreateOrConnectWithoutShopInput = {
   where: Prisma.OrderItemWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput>
+  create: Prisma.XOR<Prisma.OrderItemCreateWithoutShopInput, Prisma.OrderItemUncheckedCreateWithoutShopInput>
 }
 
-export type OrderItemCreateManyOrderInputEnvelope = {
-  data: Prisma.OrderItemCreateManyOrderInput | Prisma.OrderItemCreateManyOrderInput[]
+export type OrderItemCreateManyShopInputEnvelope = {
+  data: Prisma.OrderItemCreateManyShopInput | Prisma.OrderItemCreateManyShopInput[]
   skipDuplicates?: boolean
 }
 
-export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
+export type OrderItemUpsertWithWhereUniqueWithoutShopInput = {
   where: Prisma.OrderItemWhereUniqueInput
-  update: Prisma.XOR<Prisma.OrderItemUpdateWithoutOrderInput, Prisma.OrderItemUncheckedUpdateWithoutOrderInput>
-  create: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput>
+  update: Prisma.XOR<Prisma.OrderItemUpdateWithoutShopInput, Prisma.OrderItemUncheckedUpdateWithoutShopInput>
+  create: Prisma.XOR<Prisma.OrderItemCreateWithoutShopInput, Prisma.OrderItemUncheckedCreateWithoutShopInput>
 }
 
-export type OrderItemUpdateWithWhereUniqueWithoutOrderInput = {
+export type OrderItemUpdateWithWhereUniqueWithoutShopInput = {
   where: Prisma.OrderItemWhereUniqueInput
-  data: Prisma.XOR<Prisma.OrderItemUpdateWithoutOrderInput, Prisma.OrderItemUncheckedUpdateWithoutOrderInput>
+  data: Prisma.XOR<Prisma.OrderItemUpdateWithoutShopInput, Prisma.OrderItemUncheckedUpdateWithoutShopInput>
 }
 
-export type OrderItemUpdateManyWithWhereWithoutOrderInput = {
+export type OrderItemUpdateManyWithWhereWithoutShopInput = {
   where: Prisma.OrderItemScalarWhereInput
-  data: Prisma.XOR<Prisma.OrderItemUpdateManyMutationInput, Prisma.OrderItemUncheckedUpdateManyWithoutOrderInput>
+  data: Prisma.XOR<Prisma.OrderItemUpdateManyMutationInput, Prisma.OrderItemUncheckedUpdateManyWithoutShopInput>
 }
 
 export type OrderItemScalarWhereInput = {
   AND?: Prisma.OrderItemScalarWhereInput | Prisma.OrderItemScalarWhereInput[]
   OR?: Prisma.OrderItemScalarWhereInput[]
   NOT?: Prisma.OrderItemScalarWhereInput | Prisma.OrderItemScalarWhereInput[]
-  id?: Prisma.StringFilter<"OrderItem"> | string
-  orderId?: Prisma.StringFilter<"OrderItem"> | string
-  productId?: Prisma.StringFilter<"OrderItem"> | string
-  priceAtPurchase?: Prisma.DecimalFilter<"OrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  id?: Prisma.UuidFilter<"OrderItem"> | string
+  orderId?: Prisma.UuidFilter<"OrderItem"> | string
+  productId?: Prisma.UuidFilter<"OrderItem"> | string
+  shopId?: Prisma.UuidFilter<"OrderItem"> | string
   quantity?: Prisma.IntFilter<"OrderItem"> | number
+  priceAtPurchase?: Prisma.DecimalFilter<"OrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemCreateWithoutProductInput = {
-  id: string
-  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  id?: string
   quantity: number
-  Order: Prisma.OrderCreateNestedOneWithoutOrderItemInput
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  order: Prisma.OrderCreateNestedOneWithoutItemsInput
+  shop: Prisma.ShopCreateNestedOneWithoutOrderItemsInput
 }
 
 export type OrderItemUncheckedCreateWithoutProductInput = {
-  id: string
+  id?: string
   orderId: string
-  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  shopId: string
   quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemCreateOrConnectWithoutProductInput = {
@@ -544,60 +615,142 @@ export type OrderItemUpdateManyWithWhereWithoutProductInput = {
   data: Prisma.XOR<Prisma.OrderItemUpdateManyMutationInput, Prisma.OrderItemUncheckedUpdateManyWithoutProductInput>
 }
 
-export type OrderItemCreateManyOrderInput = {
-  id: string
-  productId: string
-  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+export type OrderItemCreateWithoutOrderInput = {
+  id?: string
   quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  product: Prisma.ProductCreateNestedOneWithoutOrderItemsInput
+  shop: Prisma.ShopCreateNestedOneWithoutOrderItemsInput
 }
 
-export type OrderItemUpdateWithoutOrderInput = {
+export type OrderItemUncheckedCreateWithoutOrderInput = {
+  id?: string
+  productId: string
+  shopId: string
+  quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type OrderItemCreateOrConnectWithoutOrderInput = {
+  where: Prisma.OrderItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput>
+}
+
+export type OrderItemCreateManyOrderInputEnvelope = {
+  data: Prisma.OrderItemCreateManyOrderInput | Prisma.OrderItemCreateManyOrderInput[]
+  skipDuplicates?: boolean
+}
+
+export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
+  where: Prisma.OrderItemWhereUniqueInput
+  update: Prisma.XOR<Prisma.OrderItemUpdateWithoutOrderInput, Prisma.OrderItemUncheckedUpdateWithoutOrderInput>
+  create: Prisma.XOR<Prisma.OrderItemCreateWithoutOrderInput, Prisma.OrderItemUncheckedCreateWithoutOrderInput>
+}
+
+export type OrderItemUpdateWithWhereUniqueWithoutOrderInput = {
+  where: Prisma.OrderItemWhereUniqueInput
+  data: Prisma.XOR<Prisma.OrderItemUpdateWithoutOrderInput, Prisma.OrderItemUncheckedUpdateWithoutOrderInput>
+}
+
+export type OrderItemUpdateManyWithWhereWithoutOrderInput = {
+  where: Prisma.OrderItemScalarWhereInput
+  data: Prisma.XOR<Prisma.OrderItemUpdateManyMutationInput, Prisma.OrderItemUncheckedUpdateManyWithoutOrderInput>
+}
+
+export type OrderItemCreateManyShopInput = {
+  id?: string
+  orderId: string
+  productId: string
+  quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type OrderItemUpdateWithoutShopInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  Product?: Prisma.ProductUpdateOneRequiredWithoutOrderItemNestedInput
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  order?: Prisma.OrderUpdateOneRequiredWithoutItemsNestedInput
+  product?: Prisma.ProductUpdateOneRequiredWithoutOrderItemsNestedInput
 }
 
-export type OrderItemUncheckedUpdateWithoutOrderInput = {
+export type OrderItemUncheckedUpdateWithoutShopInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
-export type OrderItemUncheckedUpdateManyWithoutOrderInput = {
+export type OrderItemUncheckedUpdateManyWithoutShopInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemCreateManyProductInput = {
-  id: string
+  id?: string
   orderId: string
-  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+  shopId: string
   quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  Order?: Prisma.OrderUpdateOneRequiredWithoutOrderItemNestedInput
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  order?: Prisma.OrderUpdateOneRequiredWithoutItemsNestedInput
+  shop?: Prisma.ShopUpdateOneRequiredWithoutOrderItemsNestedInput
 }
 
 export type OrderItemUncheckedUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderId?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  shopId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrderItemUncheckedUpdateManyWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderId?: Prisma.StringFieldUpdateOperationsInput | string
-  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  shopId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type OrderItemCreateManyOrderInput = {
+  id?: string
+  productId: string
+  shopId: string
+  quantity: number
+  priceAtPurchase: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type OrderItemUpdateWithoutOrderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  product?: Prisma.ProductUpdateOneRequiredWithoutOrderItemsNestedInput
+  shop?: Prisma.ShopUpdateOneRequiredWithoutOrderItemsNestedInput
+}
+
+export type OrderItemUncheckedUpdateWithoutOrderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  shopId?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type OrderItemUncheckedUpdateManyWithoutOrderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  shopId?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  priceAtPurchase?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 
@@ -606,66 +759,78 @@ export type OrderItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   id?: boolean
   orderId?: boolean
   productId?: boolean
-  priceAtPurchase?: boolean
+  shopId?: boolean
   quantity?: boolean
-  Order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
-  Product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  priceAtPurchase?: boolean
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  shop?: boolean | Prisma.ShopDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderItem"]>
 
 export type OrderItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   orderId?: boolean
   productId?: boolean
-  priceAtPurchase?: boolean
+  shopId?: boolean
   quantity?: boolean
-  Order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
-  Product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  priceAtPurchase?: boolean
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  shop?: boolean | Prisma.ShopDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderItem"]>
 
 export type OrderItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   orderId?: boolean
   productId?: boolean
-  priceAtPurchase?: boolean
+  shopId?: boolean
   quantity?: boolean
-  Order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
-  Product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  priceAtPurchase?: boolean
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  shop?: boolean | Prisma.ShopDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderItem"]>
 
 export type OrderItemSelectScalar = {
   id?: boolean
   orderId?: boolean
   productId?: boolean
-  priceAtPurchase?: boolean
+  shopId?: boolean
   quantity?: boolean
+  priceAtPurchase?: boolean
 }
 
-export type OrderItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderId" | "productId" | "priceAtPurchase" | "quantity", ExtArgs["result"]["orderItem"]>
+export type OrderItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderId" | "productId" | "shopId" | "quantity" | "priceAtPurchase", ExtArgs["result"]["orderItem"]>
 export type OrderItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  Order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
-  Product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  shop?: boolean | Prisma.ShopDefaultArgs<ExtArgs>
 }
 export type OrderItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  Order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
-  Product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  shop?: boolean | Prisma.ShopDefaultArgs<ExtArgs>
 }
 export type OrderItemIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  Order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
-  Product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  shop?: boolean | Prisma.ShopDefaultArgs<ExtArgs>
 }
 
 export type $OrderItemPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "OrderItem"
   objects: {
-    Order: Prisma.$OrderPayload<ExtArgs>
-    Product: Prisma.$ProductPayload<ExtArgs>
+    order: Prisma.$OrderPayload<ExtArgs>
+    product: Prisma.$ProductPayload<ExtArgs>
+    shop: Prisma.$ShopPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     orderId: string
     productId: string
-    priceAtPurchase: runtime.Decimal
+    shopId: string
     quantity: number
+    priceAtPurchase: runtime.Decimal
   }, ExtArgs["result"]["orderItem"]>
   composites: {}
 }
@@ -1060,8 +1225,9 @@ readonly fields: OrderItemFieldRefs;
  */
 export interface Prisma__OrderItemClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  Order<T extends Prisma.OrderDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrderDefaultArgs<ExtArgs>>): Prisma.Prisma__OrderClient<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  Product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  order<T extends Prisma.OrderDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrderDefaultArgs<ExtArgs>>): Prisma.Prisma__OrderClient<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  shop<T extends Prisma.ShopDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ShopDefaultArgs<ExtArgs>>): Prisma.Prisma__ShopClient<runtime.Types.Result.GetResult<Prisma.$ShopPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1094,8 +1260,9 @@ export interface OrderItemFieldRefs {
   readonly id: Prisma.FieldRef<"OrderItem", 'String'>
   readonly orderId: Prisma.FieldRef<"OrderItem", 'String'>
   readonly productId: Prisma.FieldRef<"OrderItem", 'String'>
-  readonly priceAtPurchase: Prisma.FieldRef<"OrderItem", 'Decimal'>
+  readonly shopId: Prisma.FieldRef<"OrderItem", 'String'>
   readonly quantity: Prisma.FieldRef<"OrderItem", 'Int'>
+  readonly priceAtPurchase: Prisma.FieldRef<"OrderItem", 'Decimal'>
 }
     
 

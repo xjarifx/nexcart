@@ -18,10 +18,40 @@ export { Prisma }
 export * as $Enums from './enums.js'
 export * from './enums.js';
 /**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
+/**
+ * Model RefreshToken
+ * 
+ */
+export type RefreshToken = Prisma.RefreshTokenModel
+/**
  * Model Address
  * 
  */
 export type Address = Prisma.AddressModel
+/**
+ * Model Shop
+ * 
+ */
+export type Shop = Prisma.ShopModel
+/**
+ * Model Category
+ * 
+ */
+export type Category = Prisma.CategoryModel
+/**
+ * Model Product
+ * 
+ */
+export type Product = Prisma.ProductModel
+/**
+ * Model Inventory
+ * 
+ */
+export type Inventory = Prisma.InventoryModel
 /**
  * Model Cart
  * 
@@ -32,16 +62,6 @@ export type Cart = Prisma.CartModel
  * 
  */
 export type CartItem = Prisma.CartItemModel
-/**
- * Model Category
- * 
- */
-export type Category = Prisma.CategoryModel
-/**
- * Model Inventory
- * 
- */
-export type Inventory = Prisma.InventoryModel
 /**
  * Model Order
  * 
@@ -58,17 +78,7 @@ export type OrderItem = Prisma.OrderItemModel
  */
 export type Payment = Prisma.PaymentModel
 /**
- * Model Product
- * 
- */
-export type Product = Prisma.ProductModel
-/**
  * Model Review
  * 
  */
 export type Review = Prisma.ReviewModel
-/**
- * Model User
- * 
- */
-export type User = Prisma.UserModel
