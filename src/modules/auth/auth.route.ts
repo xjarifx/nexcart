@@ -1,14 +1,13 @@
-import router from "express";
-import { loginController, registerController } from "./auth.controller.js";
+import { Router } from "express";
+import { register, login, refresh, logout } from "./auth.controller.js";
 
-const authRouter = router.Router();
+const authRouter = Router();
 
 /**
  * @openapi
  * /api/auth/register:
  *   post:
- *     tags:
- *       - Auth
+ *     tags: [Auth]
  *     summary: Register a new user
  *     requestBody:
  *       required: true
@@ -16,47 +15,103 @@ const authRouter = router.Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - email
- *               - password
- *               - name
- *               - phone
+ *             required: [name, email, password, phone]
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Jane Doe
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane@example.com
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *                 example: securepass123
+ *               phone:
+ *                 type: string
+ *                 example: "01012345678"
+ *     responses:
+ *       201:
+ *         description: User registered
+ *       409:
+ *         description: Email already in use
+ */
+authRouter.post("/register", register);
+
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Login and receive tokens
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
  *             properties:
  *               email:
  *                 type: string
  *                 format: email
- *                 example: user@example.com
  *               password:
  *                 type: string
- *                 minLength: 6
- *                 example: secret123
- *               name:
- *                 type: string
- *                 example: John Doe
- *               phone:
- *                 type: string
- *                 example: "1234567890"
  *     responses:
- *       201:
- *         description: User created successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: User created successfully
- *                 result:
- *                   type: object
- *       400:
- *         description: All fields are required
- *       409:
- *         description: User already exists
- *       500:
- *         description: Internal server error
+ *       200:
+ *         description: Returns accessToken and refreshToken
+ *       401:
+ *         description: Invalid email or password
  */
-authRouter.post("/register", registerController);
-authRouter.post("/login", loginController);
+authRouter.post("/login", login);
+
+/**
+ * @openapi
+ * /api/auth/refresh:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Get a new access token using a refresh token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [refreshToken]
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Returns new accessToken
+ *       401:
+ *         description: Invalid or expired refresh token
+ */
+authRouter.post("/refresh", refresh);
+
+/**
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Logout and invalidate refresh token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [refreshToken]
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       204:
+ *         description: Logged out
+ *       401:
+ *         description: Invalid refresh token
+ */
+authRouter.post("/logout", logout);
 
 export default authRouter;

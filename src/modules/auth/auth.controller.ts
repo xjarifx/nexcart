@@ -1,41 +1,52 @@
-import { Request, Response } from "express";
-import { createUserService, userLoginService } from "./auth.service.js";
+import { Request, Response, NextFunction } from "express";
+import {
+  registerSchema,
+  loginSchema,
+  refreshSchema,
+} from "./auth.validation.js";
+import {
+  registerService,
+  loginService,
+  refreshService,
+  logoutService,
+} from "./auth.service.js";
 
-export const registerController = async (req: Request, res: Response) => {
-  const { email, password, name, phone } = req.body;
-  if (!email || !password || !name || !phone) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-  try {
-    const result = await createUserService(email, password, name, phone);
-    return res
-      .status(201)
-      .json({ message: "User created successfully", result });
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "User already exists") {
-        return res.status(409).json({ message: error.message });
-      }
-    }
-    console.error("Error registering user:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const body = registerSchema.parse(req.body);
+  const result = await registerService(body);
+  res.status(201).json(result);
 };
 
-export const loginController = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
-  }
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { email, password } = loginSchema.parse(req.body);
+  const result = await loginService(email, password);
+  res.json(result);
+};
 
-  try {
-    const result = await userLoginService(email, password);
-    res.json({
-      message: "Login successful",
-      token: result.token,
-    });
-  } catch (error) {
-    console.error("Error logging in user:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
+export const refresh = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { refreshToken } = refreshSchema.parse(req.body);
+  const result = await refreshService(refreshToken);
+  res.json(result);
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { refreshToken } = refreshSchema.parse(req.body);
+  await logoutService(refreshToken);
+  res.status(204).send();
 };

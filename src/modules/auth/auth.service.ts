@@ -1,75 +1,81 @@
 import "dotenv/config";
-import { createUserValidation } from "./auth.validation.js";
-import {
-  createUserRepository,
-  findUserByEmailRepository,
-} from "./auth.repository.js";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { AppError } from "../../types/errors.js";
+import {
+  createUser,
+  createRefreshToken,
+  deleteRefreshToken,
+  findRefreshToken,
+  findUserByEmail,
+  findUserById,
+} from "./auth.repository.js";
 
-export const createUserService = async (
-  email: string,
-  password: string,
-  name: string,
-  phone: string,
-) => {
-  const userData = {
-    email,
-    password,
-    name,
-    phone,
-  };
-  if (!email || !password || !name || !phone) {
-    throw new Error("All fields are required");
-  }
-
-  const validatedData = createUserValidation.parse(userData);
-  if (!validatedData) {
-    throw new Error("Validation failed");
-  }
-
-  // user exists check
-  const isUserExist = await findUserByEmailRepository(validatedData.email);
-  if (isUserExist) {
-    throw new Error("User already exists");
-  }
-
-  try {
-    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
-
-    const user = await createUserRepository(
-      validatedData.email,
-      hashedPassword,
-      validatedData.name,
-      validatedData.phone,
-    );
-    return user;
-  } catch (error) {
-    console.error("Error creating user:", error);
-    throw new Error("Internal server error");
-  }
+const signAccessToken = (userId: string): string => {
+  const secret = process.env.ACCESS_TOKEN_SECRET;
+  if (!secret) throw new AppError("ACCESS_TOKEN_SECRET is not set", 500);
+  return jwt.sign({ id: userId }, secret, { expiresIn: "15m" });
 };
 
-export const userLoginService = async (email: string, password: string) => {
-  // find user by email
-  const user = await findUserByEmailRepository(email);
-  if (!user) {
-    throw new Error("Invalid email or password");
+const generateRefreshToken = () => crypto.randomBytes(64).toString("hex");
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const registerService = async (data: {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+}) => {
+  const existing = await findUserByEmail(data.email);
+  if (existing) throw new AppError("Email already in use", 409);
+
+  const hashed = await bcrypt.hash(data.password, 12);
+  const user = await createUser({ ...data, password: hashed });
+
+  const { password: _, ...safeUser } = user;
+  return { data: safeUser };
+};
+
+export const loginService = async (email: string, password: string) => {
+  const user = await findUserByEmail(email);
+  if (!user) throw new AppError("Invalid email or password", 401);
+
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) throw new AppError("Invalid email or password", 401);
+
+  const accessToken = signAccessToken(user.id);
+  const refreshToken = generateRefreshToken();
+
+  // const expiresAt = new Date();
+  // expiresAt.setDate(expiresAt.getDate() + 7);
+
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+  await createRefreshToken({ userId: user.id, token: refreshToken, expiresAt });
+
+  const { password: _, ...safeUser } = user;
+  return { data: { user: safeUser, accessToken, refreshToken } };
+};
+
+export const refreshService = async (token: string) => {
+  const stored = await findRefreshToken(token);
+  if (!stored) throw new AppError("Invalid refresh token", 401);
+  if (stored.expiresAt < new Date()) {
+    await deleteRefreshToken(token);
+    throw new AppError("Refresh token expired", 401);
   }
 
-  // compare passwords
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    throw new Error("Invalid email or password");
-  }
+  const user = await findUserById(stored.userId);
+  if (!user) throw new AppError("User not found", 401);
 
-  // JWT
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET is not defined in environment variables");
-  }
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
+  const accessToken = signAccessToken(user.id);
+  return { data: { accessToken } };
+};
 
-  return { user, token };
+export const logoutService = async (token: string) => {
+  const stored = await findRefreshToken(token);
+  if (!stored) throw new AppError("Invalid refresh token", 401);
+  await deleteRefreshToken(token);
 };
