@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 
 import authRouter from "./modules/auth/auth.route.js";
@@ -17,6 +18,7 @@ import { errorHandler } from "./middleware/errorHandler.middleware.js";
 
 const app = express();
 
+app.use(helmet());
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
