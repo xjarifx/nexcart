@@ -5,7 +5,7 @@ import swaggerUi from "swagger-ui-express";
 
 import authRouter from "./modules/auth/auth.route.js";
 import { swaggerSpec } from "./lib/swagger.js";
-import { globalErrorHandler } from "./middleware/errorHandler.middleware.js
+import { globalErrorHandler } from "./middleware/errorHandler.middleware.js";
 import userRouter from "./modules/users/users.route.js";
 
 const app = express();
