@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { register, login, refresh, logout } from "./auth.controller.js";
+import { authenticate } from "../../middleware/authenticate.middleware.js";
 
 const authRouter = Router();
 
@@ -112,6 +113,6 @@ authRouter.post("/refresh", refresh);
  *       401:
  *         description: Invalid refresh token
  */
-authRouter.post("/logout", logout);
+authRouter.post("/logout", authenticate, logout);
 
 export default authRouter;

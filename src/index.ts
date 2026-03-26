@@ -6,7 +6,8 @@ import { ZodError } from "zod";
 
 import authRouter from "./modules/auth/auth.route.js";
 import { swaggerSpec } from "./lib/swagger.js";
-import { errorHandler } from "./middleware/errorHandler.js";
+import { errorHandler } from "./middleware/errorHandler.middleware.js";
+import userRouter from "./modules/users/users.route.js";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -27,6 +28,7 @@ app.get("/health", (_req, res) => res.json({ status: "OK" }));
 
 // routes
 app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
 
 // swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

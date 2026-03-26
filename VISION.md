@@ -317,6 +317,8 @@ POST   /api/auth/logout          authenticate
 ```
 GET    /api/users/me             authenticate
 PUT    /api/users/me             authenticate
+DELETE /api/users/me             authenticate
+
 PUT    /api/users/me/password    authenticate
 
 GET    /api/users/me/addresses          authenticate

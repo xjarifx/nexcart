@@ -1,40 +1,42 @@
-import "dotenv/config";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { AppError } from "../types/errors.js";
+import { findUserById } from "../modules/auth/auth.repository.js";
 
-// Extend Express Request interface to include 'user'
-declare global {
-  namespace Express {
-    interface Request {
-      user?: any;
-    }
-  }
-}
-
-export const authenticationMiddleware = (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new AppError("Unauthorized", 401);
+    }
 
-  const token = authHeader.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      throw new AppError("Unauthorized", 401);
+    }
 
-  jwt.verify(
-    token,
-    process.env.JWT_SECRET as string,
-    (err: any, decoded: any) => {
-      if (err) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-      req.user = decoded;
-      next();
-    },
-  );
+    const secret = process.env.ACCESS_TOKEN_SECRET;
+    if (!secret) {
+      throw new AppError("ACCESS_TOKEN_SECRET is not set", 500);
+    }
+
+    const decoded = jwt.verify(token, secret) as { id: string };
+    const user = await findUserById(decoded.id);
+
+    if (!user) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      return next(new AppError("Unauthorized", 401));
+    }
+    next(error);
+  }
 };
