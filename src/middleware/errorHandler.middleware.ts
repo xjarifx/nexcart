@@ -10,17 +10,16 @@ export const errorHandler = (
 ) => {
   if (res.headersSent) return next(err);
 
-  // Validation errors
+  const body = { success: false, message: "", data: null, meta: {} };
+
   if (err instanceof ZodError) {
-    return res.status(400).json({ error: err.issues[0]?.message });
+    return res.status(400).json({ ...body, error: err.issues[0]?.message });
   }
 
-  // Known operational errors
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json({ error: err.message });
+    return res.status(err.statusCode).json({ ...body, error: err.message });
   }
 
-  // Unknown errors — log and hide details from client
   console.error(err);
-  res.status(500).json({ error: "Internal server error" });
+  res.status(500).json({ ...body, error: "Internal server error" });
 };

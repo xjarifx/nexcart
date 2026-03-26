@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { respond } from "../../lib/response.js";
 import { createShopSchema, updateShopSchema } from "./shop.validation.js";
 import {
   createShopService,
@@ -13,36 +14,36 @@ import {
 export const createShop = async (req: Request, res: Response, next: NextFunction) => {
   const body = createShopSchema.parse(req.body);
   const result = await createShopService(req.user!.id, body);
-  res.status(201).json(result);
+  respond(res, { status: 201, message: "Shop created", data: result.data });
 };
 
 export const getMyShop = async (req: Request, res: Response, next: NextFunction) => {
   const result = await getMyShopService(req.user!.id);
-  res.json(result);
+  respond(res, { data: result.data });
 };
 
 export const updateMyShop = async (req: Request, res: Response, next: NextFunction) => {
   const body = updateShopSchema.parse(req.body);
   const result = await updateMyShopService(req.user!.id, body);
-  res.json(result);
+  respond(res, { message: "Shop updated", data: result.data });
 };
 
 export const getShopBySlug = async (req: Request, res: Response, next: NextFunction) => {
   const result = await getShopBySlugService(req.params.slug);
-  res.json(result);
+  respond(res, { data: result.data });
 };
 
 export const getAllShops = async (req: Request, res: Response, next: NextFunction) => {
   const result = await getAllShopsService(req.query.status as string | undefined);
-  res.json(result);
+  respond(res, { data: result.data });
 };
 
 export const approveShop = async (req: Request, res: Response, next: NextFunction) => {
   const result = await approveShopService(req.params.id);
-  res.json(result);
+  respond(res, { message: "Shop approved", data: result.data });
 };
 
 export const suspendShop = async (req: Request, res: Response, next: NextFunction) => {
   const result = await suspendShopService(req.params.id);
-  res.json(result);
+  respond(res, { message: "Shop suspended", data: result.data });
 };

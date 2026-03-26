@@ -267,17 +267,23 @@ Services throw `AppError`. Controllers have zero try/catch. Everything bubbles t
 
 ## Response Shape
 
-Three shapes. Never a fourth.
+One shape. Always.
 
 ```json
-{ "data": {} }
+{
+  "success": true,
+  "message": "",
+  "data": {},
+  "error": null,
+  "meta": {}
+}
 ```
-```json
-{ "data": [], "meta": { "total": 0, "page": 1, "limit": 20, "totalPages": 0 } }
-```
-```json
-{ "error": "message" }
-```
+
+- `success` — `true` for 2xx, `false` for errors
+- `message` — human-readable context, empty string when not needed
+- `data` — the payload, `null` on errors or empty responses
+- `error` — error message string, `null` on success
+- `meta` — pagination info on list endpoints, empty object otherwise
 
 Status codes speak for themselves. No narration.
 
