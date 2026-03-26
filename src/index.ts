@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 
 import authRouter from "./modules/auth/auth.route.js";
 import { swaggerSpec } from "./lib/swagger.js";
-import { errorHandler } from "./middleware/errorHandler.middleware.js";
+import { globalErrorHandler } from "./middleware/globalErrorHandler.middleware.js";
 import userRouter from "./modules/users/users.route.js";
 
 const app = express();
@@ -45,7 +45,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 
 // global error handler
-app.use(errorHandler);
+app.use(globalErrorHandler);
 
 // ascii art is perfect
 app.listen(PORT, () => {
