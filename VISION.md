@@ -26,9 +26,8 @@ src/
     paginate.ts
     slug.ts
   middleware/
-    authenticate.ts
-    authorize.ts
-    errorHandler.ts
+    authentication.middleware.ts
+    globalErrorHandler.middleware.ts
   modules/
     auth/
     user/

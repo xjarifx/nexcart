@@ -1,12 +1,11 @@
 import "dotenv/config";
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
-import { ZodError } from "zod";
 
 import authRouter from "./modules/auth/auth.route.js";
 import { swaggerSpec } from "./lib/swagger.js";
-import { globalErrorHandler } from "./middleware/globalErrorHandler.middleware.js";
+import { globalErrorHandler } from "./middleware/errorHandler.middleware.js
 import userRouter from "./modules/users/users.route.js";
 
 const app = express();
@@ -36,15 +35,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // 404
 app.use((_req, res) => res.status(404).json({ error: "Route not found" }));
 
-// zod validation errors → 400
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof ZodError) {
-    return res.status(400).json({ error: err.issues[0]?.message });
-  }
-  next(err);
-});
-
-// global error handler
+// global error handler (handles Zod, AppError, and all other errors)
 app.use(globalErrorHandler);
 
 // ascii art is perfect

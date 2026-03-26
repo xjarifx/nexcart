@@ -1,49 +1,59 @@
 import { Request, Response, NextFunction } from "express";
+import {
+  updateMeSchema,
+  updatePasswordSchema,
+  addressSchema,
+} from "./users.validation.js";
+import {
+  updateMeService,
+  deleteMeService,
+  updatePasswordService,
+  getAddressesService,
+  addAddressService,
+  updateAddressService,
+  deleteAddressService,
+} from "./users.service.js";
 
-export const getMe = (req: Request, res: Response, next: NextFunction) => {
-  res.json({ message: "Get user profile" });
+export const getMe = (req: Request, res: Response) => {
+  const { password: _, ...safeUser } = req.user!;
+  res.json({ data: safeUser });
 };
 
-export const updateMe = (req: Request, res: Response, next: NextFunction) => {
-  res.json({ message: "Update user profile" });
+export const updateMe = async (req: Request, res: Response, next: NextFunction) => {
+  const body = updateMeSchema.parse(req.body);
+  const result = await updateMeService(req.user!.id, body);
+  res.json(result);
 };
 
-export const deleteMe = (req: Request, res: Response, next: NextFunction) => {
-  res.json({ message: "Delete user profile" });
+export const deleteMe = async (req: Request, res: Response, next: NextFunction) => {
+  await deleteMeService(req.user!.id);
+  res.status(204).send();
 };
 
-export const updatePassword = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  res.json({ message: "Update user password" });
+export const updatePassword = async (req: Request, res: Response, next: NextFunction) => {
+  const { currentPassword, newPassword } = updatePasswordSchema.parse(req.body);
+  await updatePasswordService(req.user!.id, currentPassword, newPassword);
+  res.status(204).send();
 };
 
-export const getAddresses = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  res.json({ message: "Get user addresses" });
+export const getAddresses = async (req: Request, res: Response, next: NextFunction) => {
+  const result = await getAddressesService(req.user!.id);
+  res.json(result);
 };
 
-export const addAddress = (req: Request, res: Response, next: NextFunction) => {
-  res.json({ message: "Add user address" });
+export const addAddress = async (req: Request, res: Response, next: NextFunction) => {
+  const body = addressSchema.parse(req.body);
+  const result = await addAddressService(req.user!.id, body);
+  res.status(201).json(result);
 };
 
-export const updateAddress = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  res.json({ message: "Update user address" });
+export const updateAddress = async (req: Request, res: Response, next: NextFunction) => {
+  const body = addressSchema.partial().parse(req.body);
+  const result = await updateAddressService(req.user!.id, req.params.id, body);
+  res.json(result);
 };
 
-export const deleteAddress = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  res.json({ message: "Delete user address" });
+export const deleteAddress = async (req: Request, res: Response, next: NextFunction) => {
+  await deleteAddressService(req.user!.id, req.params.id);
+  res.status(204).send();
 };
