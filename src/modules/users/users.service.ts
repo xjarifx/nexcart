@@ -92,10 +92,7 @@ export const updateAddressService = async (
   return { data: address };
 };
 
-export const deleteAddressService = async (
-  userId: string,
-  addressId: string,
-) => {
+export const deleteAddressService = async (userId: string, addressId: string) => {
   const existing = await findAddressById(addressId, userId);
   if (!existing) throw new AppError("Address not found", 404);
   await deleteAddressById(addressId);

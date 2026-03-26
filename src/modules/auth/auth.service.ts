@@ -47,11 +47,7 @@ export const loginService = async (email: string, password: string) => {
 
   const accessToken = signAccessToken(user.id);
   const refreshToken = generateRefreshToken();
-
-  // const expiresAt = new Date();
-  // expiresAt.setDate(expiresAt.getDate() + 7);
-
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   await createRefreshToken({ userId: user.id, token: refreshToken, expiresAt });
 
@@ -62,6 +58,7 @@ export const loginService = async (email: string, password: string) => {
 export const refreshService = async (token: string) => {
   const stored = await findRefreshToken(token);
   if (!stored) throw new AppError("Invalid refresh token", 401);
+
   if (stored.expiresAt < new Date()) {
     await deleteRefreshToken(token);
     throw new AppError("Refresh token expired", 401);

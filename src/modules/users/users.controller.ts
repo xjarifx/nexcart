@@ -49,11 +49,11 @@ export const addAddress = async (req: Request, res: Response, next: NextFunction
 
 export const updateAddress = async (req: Request, res: Response, next: NextFunction) => {
   const body = addressSchema.partial().parse(req.body);
-  const result = await updateAddressService(req.user!.id, req.params.id, body);
+  const result = await updateAddressService(req.user!.id, req.params.id as string, body);
   res.json(result);
 };
 
 export const deleteAddress = async (req: Request, res: Response, next: NextFunction) => {
-  await deleteAddressService(req.user!.id, req.params.id);
+  await deleteAddressService(req.user!.id, req.params.id as string);
   res.status(204).send();
 };

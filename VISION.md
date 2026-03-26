@@ -26,11 +26,11 @@ src/
     paginate.ts
     slug.ts
   middleware/
-    authentication.middleware.ts
-    globalErrorHandler.middleware.ts
+    auth.middleware.ts
+    errorHandler.middleware.ts
   modules/
     auth/
-    user/
+    users/
     shop/
     category/
     product/
@@ -223,7 +223,7 @@ unique: (userId, productId)
 ## Auth Strategy
 
 Access token: JWT, 15 minutes, signed with `ACCESS_TOKEN_SECRET`. Stateless.
-Refresh token: random string, 7 days, stored in `RefreshToken` table, signed with `REFRESH_TOKEN_SECRET`.
+Refresh token: random string, 7 days, stored in `RefreshToken` table.
 
 1. Login → return both tokens
 2. Access token expires → `POST /api/auth/refresh` with refresh token → new access token
@@ -233,7 +233,7 @@ Refresh token: random string, 7 days, stored in `RefreshToken` table, signed wit
 
 ## Middleware
 
-**authenticate.ts**
+**auth.middleware.ts**
 1. Read `Authorization: Bearer <token>`
 2. `jwt.verify` with `ACCESS_TOKEN_SECRET`
 3. Fetch user from DB — confirm they still exist
@@ -246,8 +246,8 @@ const authorize = (...roles: Role[]) => // checks req.user.role
 ```
 Usage: `authorize('ADMIN')`
 
-**errorHandler.ts**
-Global handler. `AppError` → return its status + message. Anything else → 500 generic. Stack trace logged in development only.
+**errorHandler.middleware.ts**
+Global handler. `ZodError` → 400. `AppError` → its statusCode + message. Anything else → 500 generic, always logged.
 
 ---
 
@@ -261,7 +261,7 @@ class AppError extends Error {
 }
 ```
 
-Services throw `AppError`. Controllers have zero try/catch. Everything bubbles to the global handler.
+Services throw `AppError`. Controllers have zero try/catch. Everything bubbles to the global handler via Express 5's automatic async error forwarding.
 
 ---
 
@@ -450,49 +450,47 @@ Status only moves forward. No skipping steps. No going back except CANCELLED.
 
 ## Build Steps
 
-Follow this exactly. Each step depends on the previous.
+- [x] **Step 1 — Project foundation**
+  TypeScript, Express, Prisma, dotenv, folder structure. Health check route.
 
-**Step 1 — Project foundation**
-TypeScript, Express, Prisma, dotenv, folder structure. Nothing runs yet except a health check route.
+- [x] **Step 2 — Schema**
+  Complete Prisma schema. Migration. Seed with realistic data covering all models.
 
-**Step 2 — Schema**
-Write the complete Prisma schema. Run migration. Write seed with realistic data covering all models.
+- [x] **Step 3 — Shared utilities**
+  `AppError` class, global `errorHandler` middleware.
 
-**Step 3 — Shared utilities**
-`AppError` class, global `errorHandler` middleware, `paginate` helper, `slug` helper.
+- [x] **Step 4 — Auth module**
+  Register, login, refresh, logout. JWT + refresh token flow.
 
-**Step 4 — Auth module**
-Register, login, refresh, logout. JWT + refresh token flow. No protected routes yet.
+- [x] **Step 5 — auth.middleware.ts**
+  JWT verification, user fetch, `req.user` attachment.
 
-**Step 5 — authenticate middleware**
-JWT verification, user fetch, `req.user` attachment. Test it manually before moving on.
+- [x] **Step 6 — authorize middleware**
+  Role check factory. One function, used on all admin routes going forward.
 
-**Step 6 — authorize middleware**
-Role check factory. One function, used on all admin routes going forward.
+- [x] **Step 7 — Users module**
+  Profile read/update, password change, address CRUD.
 
-**Step 7 — User module**
-Profile read/update, password change, address CRUD. First use of `authenticate`.
+- [x] **Step 8 — Category module**
+  Public reads, admin CRUD. First use of `authorize`.
 
-**Step 8 — Category module**
-Public reads, admin CRUD. First use of `authorize`.
+- [x] **Step 9 — Shop module**
+  Create shop, read own shop, update own shop, public shop profile. Admin approve/suspend.
 
-**Step 9 — Shop module**
-Create shop, read own shop, update own shop, public shop profile. Admin approve/suspend. Seller identity is established here.
+- [x] **Step 10 — Product module**
+  Seller creates/updates/deletes products via `/shops/mine/products`. Inventory auto-created. Public catalog with filters.
 
-**Step 10 — Product module**
-Seller creates/updates/deletes products via `/shops/mine/products`. Inventory record created automatically on product creation. Public catalog endpoint with filters.
+- [x] **Step 11 — Cart module**
+  Add, update, remove items. Lazy cart creation. Validate product and shop are active on add.
 
-**Step 11 — Cart module**
-Add, update, remove items. Lazy cart creation. Validate product is active and shop is active on add.
+- [x] **Step 12 — Order module**
+  Checkout transaction. Buyer order history. Seller order view and status update. Admin order view.
 
-**Step 12 — Order module**
-Checkout transaction. Buyer order history. Seller order view and status update. Admin order view.
+- [x] **Step 13 — Payment module**
+  Record payment against an order. Read payment by order.
 
-**Step 13 — Payment module**
-Record payment against an order. Read payment by order.
+- [x] **Step 14 — Review module**
+  List reviews publicly. Authenticated create and delete.
 
-**Step 14 — Review module**
-List reviews publicly. Authenticated create and delete.
-
-**Step 15 — Swagger**
-Every route annotated. Run through all endpoints in the UI and confirm responses match the documented shapes.
+- [ ] **Step 15 — Swagger**
+  Every route annotated. Run through all endpoints in the UI and confirm responses match the documented shapes.
