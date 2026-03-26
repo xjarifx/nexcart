@@ -492,5 +492,5 @@ Status only moves forward. No skipping steps. No going back except CANCELLED.
 - [x] **Step 14 — Review module**
   List reviews publicly. Authenticated create and delete.
 
-- [ ] **Step 15 — Swagger**
+- [x] **Step 15 — Swagger**
   Every route annotated. Run through all endpoints in the UI and confirm responses match the documented shapes.
