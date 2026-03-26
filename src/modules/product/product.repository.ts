@@ -1,4 +1,3 @@
-import { Decimal } from "@prisma/client/runtime/library";
 import { ShopStatus } from "../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
 
@@ -30,8 +29,8 @@ export const findPublicProducts = (filters: {
     ...(filters.shopSlug && { shop: { slug: filters.shopSlug } }),
     ...((filters.minPrice || filters.maxPrice) && {
       price: {
-        ...(filters.minPrice && { gte: new Decimal(filters.minPrice) }),
-        ...(filters.maxPrice && { lte: new Decimal(filters.maxPrice) }),
+        ...(filters.minPrice && { gte: filters.minPrice }),
+        ...(filters.maxPrice && { lte: filters.maxPrice }),
       },
     }),
   };
