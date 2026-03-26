@@ -173,14 +173,10 @@ Missing:
 
 ## What to Do Next (Priority Order)
 
-1. **Rotate all secrets, add `.env` to `.gitignore`** — do this before anything else
-2. **Add `helmet` and a body size limit** — two lines of code, big security win
-3. **Add rate limiting** (`express-rate-limit`) on auth routes at minimum
 4. **Fix inventory restoration on order cancellation**
 5. **Fix the checkout race condition** with a `SELECT FOR UPDATE` or atomic update
 6. **Add a startup env validator** (`src/config.ts` with Zod)
 7. **Add pagination to all remaining list endpoints**
-8. **Add `pino` logger** and replace `console.error`
 9. **Add category slug uniqueness check on update**
 10. **Add a real payment gateway** (Stripe is the standard choice)
 11. **Add email service** (Resend or Nodemailer) for registration and order events

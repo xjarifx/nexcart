@@ -3,19 +3,32 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import pinoHttp from "pino-http";
+const httpLogger = (pinoHttp as unknown as typeof pinoHttp.default)({ logger });
 import swaggerUi from "swagger-ui-express";
 
 import authRouter from "./modules/auth/auth.route.js";
 import userRouter from "./modules/users/users.route.js";
 import categoryRouter from "./modules/category/category.route.js";
 import shopRouter, { adminShopRouter } from "./modules/shop/shop.route.js";
-import { productRouter, sellerProductRouter } from "./modules/product/product.route.js";
+import {
+  productRouter,
+  sellerProductRouter,
+} from "./modules/product/product.route.js";
 import cartRouter from "./modules/cart/cart.route.js";
-import { orderRouter, sellerOrderRouter, adminOrderRouter } from "./modules/order/order.route.js";
+import {
+  orderRouter,
+  sellerOrderRouter,
+  adminOrderRouter,
+} from "./modules/order/order.route.js";
 import paymentRouter from "./modules/payment/payment.route.js";
-import { reviewRouter, reviewDeleteRouter } from "./modules/review/review.route.js";
+import {
+  reviewRouter,
+  reviewDeleteRouter,
+} from "./modules/review/review.route.js";
 import { swaggerSpec } from "./lib/swagger.js";
 import { errorHandler } from "./middleware/errorHandler.middleware.js";
+import logger from "./lib/logger.js";
 
 const app = express();
 
@@ -27,6 +40,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+app.use(httpLogger);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -37,7 +51,13 @@ app.use(express.urlencoded({ extended: true }));
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20,
-  message: { success: false, message: "", data: null, error: "Too many requests, please try again later.", meta: {} },
+  message: {
+    success: false,
+    message: "",
+    data: null,
+    error: "Too many requests, please try again later.",
+    meta: {},
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -46,7 +66,13 @@ const authLimiter = rateLimit({
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 300,
-  message: { success: false, message: "", data: null, error: "Too many requests, please try again later.", meta: {} },
+  message: {
+    success: false,
+    message: "",
+    data: null,
+    error: "Too many requests, please try again later.",
+    meta: {},
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -75,7 +101,17 @@ app.use("/api/admin/orders", adminOrderRouter);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.use((_req, res) => res.status(404).json({ success: false, message: "", data: null, error: "Route not found", meta: {} }));
+app.use((_req, res) =>
+  res
+    .status(404)
+    .json({
+      success: false,
+      message: "",
+      data: null,
+      error: "Route not found",
+      meta: {},
+    }),
+);
 
 app.use(errorHandler);
 
