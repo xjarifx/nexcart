@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 
 import authRouter from "./modules/auth/auth.route.js";
@@ -29,6 +30,29 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ─── Rate Limiters ────────────────────────────────────────────────────────────
+
+// Strict limiter for auth routes (login, register, refresh)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: { success: false, message: "", data: null, error: "Too many requests, please try again later.", meta: {} },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// General limiter for all other API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300,
+  message: { success: false, message: "", data: null, error: "Too many requests, please try again later.", meta: {} },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/api/auth", authLimiter);
+app.use("/api", apiLimiter);
 
 app.get("/health", (_req, res) =>
   res.json({ success: true, message: "OK", data: null, error: null, meta: {} }),
