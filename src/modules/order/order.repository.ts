@@ -77,7 +77,7 @@ export const createOrderTransaction = async (data: {
   cartId: string;
   inventoryUpdates: Array<{ productId: string; stockQuantity: number }>;
 }) => {
-  return prisma.$transaction(async (tx: typeof prisma) => {
+  return prisma.$transaction(async (tx) => {
     // Step 1: Create the order and its line items
     const order = await tx.order.create({
       data: {

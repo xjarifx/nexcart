@@ -1,3 +1,10 @@
+/**
+ * lib/prisma.ts
+ *
+ * Singleton Prisma client instance shared across the entire application.
+ * Uses the pg adapter for a direct PostgreSQL connection via the DATABASE_URL env var.
+ */
+
 import { PrismaClient } from "../generated/prisma/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 

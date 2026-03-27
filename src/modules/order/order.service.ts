@@ -146,8 +146,8 @@ export const adminUpdateOrderStatusService = async (orderId: string, status: Ord
     if (order.status === OrderStatus.DELIVERED) throw new AppError("Cannot cancel a delivered order", 400);
   } else {
     // Enforce forward-only progression for non-cancellation transitions
-    const statusOrder = [OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
-    const currentIdx = statusOrder.indexOf(order.status);
+    const statusOrder: OrderStatus[] = [OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
+    const currentIdx = statusOrder.indexOf(order.status as OrderStatus);
     const newIdx = statusOrder.indexOf(status);
     if (newIdx <= currentIdx) throw new AppError(`Cannot transition order from ${order.status} to ${status}`, 400);
   }
