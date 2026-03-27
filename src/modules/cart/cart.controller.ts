@@ -29,12 +29,12 @@ export const addCartItem = async (req: Request, res: Response, next: NextFunctio
 
 export const updateCartItem = async (req: Request, res: Response, next: NextFunction) => {
   const { quantity } = updateCartItemSchema.parse(req.body);
-  const result = await updateCartItemService(req.user!.id, req.params.id, quantity);
+  const result = await updateCartItemService(req.user!.id, req.params.id as string, quantity);
   respond(res, { message: "Cart item updated", data: result.data });
 };
 
 export const deleteCartItem = async (req: Request, res: Response, next: NextFunction) => {
-  await deleteCartItemService(req.user!.id, req.params.id);
+  await deleteCartItemService(req.user!.id, req.params.id as string);
   respond(res, { message: "Item removed from cart" });
 };
 

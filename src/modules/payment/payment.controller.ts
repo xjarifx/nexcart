@@ -17,6 +17,6 @@ export const createPayment = async (req: Request, res: Response, next: NextFunct
 };
 
 export const getPaymentByOrderId = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await getPaymentByOrderIdService(req.user!.id, req.params.orderId);
+  const result = await getPaymentByOrderIdService(req.user!.id, req.params.orderId as string);
   respond(res, { data: result.data });
 };

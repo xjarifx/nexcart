@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "dev:pretty": "tsx watch src/index.ts | pino-pretty",
-    "build": "tsc",
-    "start": "npm run build && node dist/index.js",
+    "build": "npm ci --include=dev && npx prisma generate && tsc && npm prune --production",
+    "start": "node dist/src/index.js",
     "seed": "npx tsx prisma/seed.ts",
     "test": "vitest --run",
     "test:watch": "vitest",

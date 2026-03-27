@@ -11,17 +11,17 @@ import { createReviewSchema } from "./review.validation.js";
 import { getReviewsService, createReviewService, deleteReviewService } from "./review.service.js";
 
 export const getReviews = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await getReviewsService(req.params.productId);
+  const result = await getReviewsService(req.params.productId as string);
   respond(res, { data: result.data });
 };
 
 export const createReview = async (req: Request, res: Response, next: NextFunction) => {
   const body = createReviewSchema.parse(req.body);
-  const result = await createReviewService(req.user!.id, req.params.productId, body);
+  const result = await createReviewService(req.user!.id, req.params.productId as string, body);
   respond(res, { status: 201, message: "Review submitted", data: result.data });
 };
 
 export const deleteReview = async (req: Request, res: Response, next: NextFunction) => {
-  await deleteReviewService(req.user!.id, req.params.id);
+  await deleteReviewService(req.user!.id, req.params.id as string);
   respond(res, { message: "Review deleted" });
 };

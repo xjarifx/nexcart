@@ -33,7 +33,7 @@ export const getMyOrders = async (req: Request, res: Response, next: NextFunctio
 };
 
 export const getMyOrderById = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await getMyOrderByIdService(req.user!.id, req.params.id);
+  const result = await getMyOrderByIdService(req.user!.id, req.params.id as string);
   respond(res, { data: result.data });
 };
 
@@ -46,7 +46,7 @@ export const getShopOrders = async (req: Request, res: Response, next: NextFunct
 
 export const updateShopOrderStatus = async (req: Request, res: Response, next: NextFunction) => {
   const { status } = updateOrderStatusSchema.parse(req.body);
-  const result = await updateShopOrderStatusService(req.user!.id, req.params.id, status);
+  const result = await updateShopOrderStatusService(req.user!.id, req.params.id as string, status);
   respond(res, { message: "Order status updated", data: result.data });
 };
 
@@ -59,6 +59,6 @@ export const getAllOrders = async (req: Request, res: Response, next: NextFuncti
 
 export const adminUpdateOrderStatus = async (req: Request, res: Response, next: NextFunction) => {
   const { status } = updateOrderStatusSchema.parse(req.body);
-  const result = await adminUpdateOrderStatusService(req.params.id, status);
+  const result = await adminUpdateOrderStatusService(req.params.id as string, status);
   respond(res, { message: "Order status updated", data: result.data });
 };

@@ -33,7 +33,7 @@ export const getCategoryBySlug = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const result = await getCategoryBySlugService(req.params.slug);
+  const result = await getCategoryBySlugService(req.params.slug as string);
   respond(res, { data: result.data });
 };
 
@@ -53,7 +53,7 @@ export const updateCategory = async (
   next: NextFunction,
 ) => {
   const body = updateCategorySchema.parse(req.body);
-  const result = await updateCategoryService(req.params.id, body);
+  const result = await updateCategoryService(req.params.id as string, body);
   respond(res, { message: "Category updated", data: result.data });
 };
 
@@ -62,6 +62,6 @@ export const deleteCategory = async (
   res: Response,
   next: NextFunction,
 ) => {
-  await deleteCategoryService(req.params.id);
+  await deleteCategoryService(req.params.id as string);
   respond(res, { message: "Category deleted" });
 };

@@ -36,7 +36,7 @@ export const updateMyShop = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const getShopBySlug = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await getShopBySlugService(req.params.slug);
+  const result = await getShopBySlugService(req.params.slug as string);
   respond(res, { data: result.data });
 };
 
@@ -46,11 +46,11 @@ export const getAllShops = async (req: Request, res: Response, next: NextFunctio
 };
 
 export const approveShop = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await approveShopService(req.params.id);
+  const result = await approveShopService(req.params.id as string);
   respond(res, { message: "Shop approved", data: result.data });
 };
 
 export const suspendShop = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await suspendShopService(req.params.id);
+  const result = await suspendShopService(req.params.id as string);
   respond(res, { message: "Shop suspended", data: result.data });
 };

@@ -49,12 +49,12 @@ export const checkoutService = async (userId: string, addressId: string) => {
   }
 
   const totalAmount = cart.items.reduce(
-    (sum, item) => sum + Number(item.product.price) * item.quantity,
+    (sum: number, item: typeof cart.items[number]) => sum + Number(item.product.price) * item.quantity,
     0,
   );
 
   // Compute new stock values before entering the transaction
-  const inventoryUpdates = cart.items.map((item) => ({
+  const inventoryUpdates = cart.items.map((item: typeof cart.items[number]) => ({
     productId: item.product.id,
     stockQuantity: (item.product.inventory?.stockQuantity ?? 0) - item.quantity,
   }));
@@ -63,7 +63,7 @@ export const checkoutService = async (userId: string, addressId: string) => {
     userId,
     addressId,
     totalAmount,
-    items: cart.items.map((item) => ({
+    items: cart.items.map((item: typeof cart.items[number]) => ({
       productId: item.product.id,
       shopId: item.product.shopId,
       quantity: item.quantity,
@@ -110,7 +110,7 @@ export const updateShopOrderStatusService = async (ownerId: string, orderId: str
   if (!order) throw new AppError("Order not found", 404);
 
   // Ensure at least one item in the order belongs to this seller's shop
-  const belongsToShop = order.items.some((item) => item.shopId === shop.id);
+  const belongsToShop = order.items.some((item: { shopId: string }) => item.shopId === shop.id);
   if (!belongsToShop) throw new AppError("Forbidden", 403);
 
   const sellerTransitions: Partial<Record<OrderStatus, OrderStatus>> = {
@@ -118,7 +118,7 @@ export const updateShopOrderStatusService = async (ownerId: string, orderId: str
     [OrderStatus.CONFIRMED]: OrderStatus.SHIPPED,
   };
 
-  if (sellerTransitions[order.status] !== status) {
+  if (sellerTransitions[order.status as OrderStatus] !== status) {
     throw new AppError(`Cannot transition order from ${order.status} to ${status}`, 400);
   }
 

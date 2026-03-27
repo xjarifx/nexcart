@@ -39,23 +39,23 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 
 export const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
   const body = updateProductSchema.parse(req.body);
-  const result = await updateProductService(req.user!.id, req.params.id, body);
+  const result = await updateProductService(req.user!.id, req.params.id as string, body);
   respond(res, { message: "Product updated", data: result.data });
 };
 
 export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
-  await deleteProductService(req.user!.id, req.params.id);
+  await deleteProductService(req.user!.id, req.params.id as string);
   respond(res, { message: "Product deactivated" });
 };
 
 export const getInventory = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await getInventoryService(req.user!.id, req.params.id);
+  const result = await getInventoryService(req.user!.id, req.params.id as string);
   respond(res, { data: result.data });
 };
 
 export const updateInventory = async (req: Request, res: Response, next: NextFunction) => {
   const { stockQuantity } = updateInventorySchema.parse(req.body);
-  const result = await updateInventoryService(req.user!.id, req.params.id, stockQuantity);
+  const result = await updateInventoryService(req.user!.id, req.params.id as string, stockQuantity);
   respond(res, { message: "Inventory updated", data: result.data });
 };
 
@@ -68,6 +68,6 @@ export const getPublicProducts = async (req: Request, res: Response, next: NextF
 };
 
 export const getPublicProductBySlug = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await getPublicProductBySlugService(req.params.slug);
+  const result = await getPublicProductBySlugService(req.params.slug as string);
   respond(res, { data: result.data });
 };
