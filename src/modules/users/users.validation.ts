@@ -1,5 +1,12 @@
+/**
+ * users/users.validation.ts
+ *
+ * Zod schemas for user profile and address request bodies.
+ */
+
 import { z } from "zod";
 
+/** PUT /api/users/me — at least one field required */
 export const updateMeSchema = z
   .object({
     name: z.string().min(2).max(100).optional(),
@@ -9,11 +16,13 @@ export const updateMeSchema = z
     message: "At least one field (name or phone) must be provided",
   });
 
+/** PUT /api/users/me/password */
 export const updatePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(8),
 });
 
+/** POST /api/users/me/addresses  |  PUT /api/users/me/addresses/:id (used as .partial()) */
 export const addressSchema = z.object({
   addressLine1: z.string().min(1),
   addressLine2: z.string().optional(),

@@ -1,3 +1,10 @@
+/**
+ * cart/cart.controller.ts
+ *
+ * HTTP layer for cart endpoints.
+ * All routes require authentication (enforced in the route file).
+ */
+
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
 import { addCartItemSchema, updateCartItemSchema } from "./cart.validation.js";

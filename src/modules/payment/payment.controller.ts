@@ -1,3 +1,10 @@
+/**
+ * payment/payment.controller.ts
+ *
+ * HTTP layer for payment endpoints.
+ * All routes require authentication (enforced in the route file).
+ */
+
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
 import { createPaymentSchema } from "./payment.validation.js";

@@ -1,3 +1,16 @@
+/**
+ * shop/shop.service.ts
+ *
+ * Business logic for shop management.
+ *
+ * Shop lifecycle:
+ *   PENDING (created) → ACTIVE (admin approves) → SUSPENDED (admin suspends)
+ *
+ * A user can only own one shop. Shops start as PENDING and must be approved
+ * by an admin before their products appear in the public catalog.
+ * Public browsing only shows ACTIVE shops.
+ */
+
 import { slugify } from "../../lib/slug.js";
 import { AppError } from "../../types/errors.js";
 import { ShopStatus } from "../../generated/prisma/enums.js";
@@ -10,6 +23,7 @@ import {
   updateShopById,
 } from "./shop.repository.js";
 
+/** Creates a new shop for the authenticated user. One shop per user is enforced. */
 export const createShopService = async (ownerId: string, data: { name: string; description: string }) => {
   const existing = await findShopByOwnerId(ownerId);
   if (existing) throw new AppError("You already have a shop", 409);
@@ -28,6 +42,10 @@ export const getMyShopService = async (ownerId: string) => {
   return { data: shop };
 };
 
+/**
+ * Updates the authenticated user's shop.
+ * If the name changes, regenerates the slug and checks for conflicts.
+ */
 export const updateMyShopService = async (ownerId: string, data: { name?: string; description?: string }) => {
   const shop = await findShopByOwnerId(ownerId);
   if (!shop) throw new AppError("You don't have a shop yet", 404);
@@ -42,13 +60,16 @@ export const updateMyShopService = async (ownerId: string, data: { name?: string
   return { data: updated };
 };
 
+/** Public shop lookup — only returns ACTIVE shops. Returns 404 for PENDING/SUSPENDED. */
 export const getShopBySlugService = async (slug: string) => {
   const shop = await findShopBySlug(slug);
   if (!shop) throw new AppError("Shop not found", 404);
+  // Hide non-active shops from public view (don't leak their existence)
   if (shop.status !== ShopStatus.ACTIVE) throw new AppError("Shop not found", 404);
   return { data: shop };
 };
 
+/** Admin: list all shops, optionally filtered by status. */
 export const getAllShopsService = async (status?: string) => {
   const validStatuses = Object.values(ShopStatus);
   if (status && !validStatuses.includes(status as ShopStatus)) {
@@ -58,6 +79,7 @@ export const getAllShopsService = async (status?: string) => {
   return { data: shops };
 };
 
+/** Admin: approve a PENDING or SUSPENDED shop → ACTIVE. */
 export const approveShopService = async (id: string) => {
   const shop = await findShopById(id);
   if (!shop) throw new AppError("Shop not found", 404);
@@ -66,6 +88,7 @@ export const approveShopService = async (id: string) => {
   return { data: updated };
 };
 
+/** Admin: suspend an ACTIVE shop → SUSPENDED. Products become invisible to public. */
 export const suspendShopService = async (id: string) => {
   const shop = await findShopById(id);
   if (!shop) throw new AppError("Shop not found", 404);

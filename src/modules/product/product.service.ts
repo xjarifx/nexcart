@@ -1,3 +1,16 @@
+/**
+ * product/product.service.ts
+ *
+ * Business logic for product management.
+ *
+ * Two access contexts:
+ *  - Seller: full CRUD on their own shop's products, inventory management
+ *  - Public: read-only, paginated, filtered catalog (active products only)
+ *
+ * Ownership is verified by matching the product's shopId against the
+ * authenticated user's shop. Sellers cannot touch other shops' products.
+ */
+
 import { slugify } from "../../lib/slug.js";
 import { paginate, buildMeta } from "../../lib/paginate.js";
 import { AppError } from "../../types/errors.js";
@@ -14,6 +27,10 @@ import {
   updateInventory,
 } from "./product.repository.js";
 
+/**
+ * Shared helper: resolves the seller's shop or throws 404.
+ * Used by all seller-facing service functions.
+ */
 const getSellerShop = async (ownerId: string) => {
   const shop = await findShopByOwnerId(ownerId);
   if (!shop) throw new AppError("You don't have a shop", 404);
@@ -26,6 +43,12 @@ export const getMyProductsService = async (ownerId: string) => {
   return { data: products };
 };
 
+/**
+ * Creates a product under the seller's shop.
+ * - Validates the category exists
+ * - Generates a unique slug from the name
+ * - Sets initial inventory if stockQuantity > 0
+ */
 export const createProductService = async (
   ownerId: string,
   data: { categoryId: string; name: string; description: string; price: number; brand: string; stockQuantity: number },
@@ -48,6 +71,12 @@ export const createProductService = async (
   return { data: product };
 };
 
+/**
+ * Updates a product's details.
+ * - Verifies the product belongs to the seller's shop
+ * - Validates the new category if changed
+ * - Regenerates and checks slug uniqueness if name changes
+ */
 export const updateProductService = async (
   ownerId: string,
   productId: string,
@@ -73,6 +102,7 @@ export const updateProductService = async (
   return { data: updated };
 };
 
+/** Soft-deletes a product (sets isActive=false). Preserves order history integrity. */
 export const deleteProductService = async (ownerId: string, productId: string) => {
   const shop = await getSellerShop(ownerId);
   const product = await findProductById(productId);
@@ -89,6 +119,7 @@ export const getInventoryService = async (ownerId: string, productId: string) =>
   return { data: product.inventory };
 };
 
+/** Overwrites the stock quantity for a product. */
 export const updateInventoryService = async (ownerId: string, productId: string, stockQuantity: number) => {
   const shop = await getSellerShop(ownerId);
   const product = await findProductById(productId);
@@ -98,6 +129,7 @@ export const updateInventoryService = async (ownerId: string, productId: string,
   return { data: inventory };
 };
 
+/** Public paginated product catalog with optional filters. */
 export const getPublicProductsService = async (query: {
   search?: string;
   category?: string;
@@ -122,6 +154,7 @@ export const getPublicProductsService = async (query: {
   return { data: products, meta: buildMeta(total, query.page, query.limit) };
 };
 
+/** Public single product lookup — returns 404 for inactive products or suspended shops. */
 export const getPublicProductBySlugService = async (slug: string) => {
   const product = await findProductBySlug(slug);
   if (!product || !product.isActive || product.shop.status !== "ACTIVE") {

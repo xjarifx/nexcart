@@ -131,6 +131,11 @@ categoryRouter.put("/:id", authenticate, authorize(Role.ADMIN), updateCategory);
  *       404:
  *         description: Category not found
  */
-categoryRouter.delete("/:id", authenticate, authorize(Role.ADMIN), deleteCategory);
+categoryRouter.delete(
+  "/:id",
+  authenticate,
+  authorize(Role.ADMIN),
+  deleteCategory,
+);
 
 export default categoryRouter;

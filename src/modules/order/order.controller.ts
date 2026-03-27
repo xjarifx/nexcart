@@ -1,3 +1,11 @@
+/**
+ * order/order.controller.ts
+ *
+ * HTTP layer for order endpoints.
+ * Split into three sections matching the three access contexts:
+ * buyer, seller, and admin.
+ */
+
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
 import { checkoutSchema, updateOrderStatusSchema } from "./order.validation.js";

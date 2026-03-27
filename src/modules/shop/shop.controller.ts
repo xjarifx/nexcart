@@ -1,3 +1,10 @@
+/**
+ * shop/shop.controller.ts
+ *
+ * HTTP layer for shop endpoints.
+ * Admin-only actions (approve/suspend/list all) are protected in the route file.
+ */
+
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
 import { createShopSchema, updateShopSchema } from "./shop.validation.js";

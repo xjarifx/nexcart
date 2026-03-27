@@ -1,3 +1,10 @@
+/**
+ * product/product.controller.ts
+ *
+ * HTTP layer for product endpoints.
+ * Split into two sections: seller (authenticated) and public (open).
+ */
+
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
 import {

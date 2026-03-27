@@ -1,4 +1,21 @@
-import "dotenv/config";
+/**
+ * app.ts
+ *
+ * Express application setup.
+ * Registers all global middleware and mounts all route modules.
+ * Exported for use in index.ts (server start) and tests (supertest).
+ *
+ * Middleware order matters:
+ *  1. helmet      — security headers
+ *  2. cors        — cross-origin policy
+ *  3. pino-http   — request/response logging
+ *  4. json/urlencoded — body parsing
+ *  5. rate limiters — applied per route group before the routers
+ *  6. routers     — feature modules
+ *  7. 404 handler — catches unmatched routes
+ *  8. errorHandler — must be last
+ */
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -11,28 +28,20 @@ import authRouter from "./modules/auth/auth.route.js";
 import userRouter from "./modules/users/users.route.js";
 import categoryRouter from "./modules/category/category.route.js";
 import shopRouter, { adminShopRouter } from "./modules/shop/shop.route.js";
-import {
-  productRouter,
-  sellerProductRouter,
-} from "./modules/product/product.route.js";
+import { productRouter, sellerProductRouter } from "./modules/product/product.route.js";
 import cartRouter from "./modules/cart/cart.route.js";
-import {
-  orderRouter,
-  sellerOrderRouter,
-  adminOrderRouter,
-} from "./modules/order/order.route.js";
+import { orderRouter, sellerOrderRouter, adminOrderRouter } from "./modules/order/order.route.js";
 import paymentRouter from "./modules/payment/payment.route.js";
-import {
-  reviewRouter,
-  reviewDeleteRouter,
-} from "./modules/review/review.route.js";
+import { reviewRouter, reviewDeleteRouter } from "./modules/review/review.route.js";
 import { swaggerSpec } from "./lib/swagger.js";
 import { errorHandler } from "./middleware/errorHandler.middleware.js";
 import logger from "./lib/logger.js";
 
 const app = express();
 
-app.use(helmet());
+// ─── Security & Logging ───────────────────────────────────────────────────────
+
+app.use(helmet()); // sets X-Frame-Options, CSP, HSTS, and 8 other headers
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -40,50 +49,47 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
-app.use(httpLogger);
+app.use(httpLogger); // logs every request with method, path, status, responseTime
+
+// ─── Body Parsing ─────────────────────────────────────────────────────────────
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Rate Limiters ────────────────────────────────────────────────────────────
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
 
-// Strict limiter for auth routes (login, register, refresh)
+// Tight limit on auth routes to slow down brute-force attacks
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,
-  message: {
-    success: false,
-    message: "",
-    data: null,
-    error: "Too many requests, please try again later.",
-    meta: {},
-  },
-  standardHeaders: true,
+  max: 20,                   // 20 requests per window per IP
+  message: { success: false, message: "", data: null, error: "Too many requests, please try again later.", meta: {} },
+  standardHeaders: true,     // sends RateLimit-* headers
   legacyHeaders: false,
 });
 
-// General limiter for all other API routes
+// Looser limit for the rest of the API
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300,
-  message: {
-    success: false,
-    message: "",
-    data: null,
-    error: "Too many requests, please try again later.",
-    meta: {},
-  },
+  max: 300,                  // 300 requests per window per IP
+  message: { success: false, message: "", data: null, error: "Too many requests, please try again later.", meta: {} },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
+// Auth limiter must be registered before the auth router
 app.use("/api/auth", authLimiter);
 app.use("/api", apiLimiter);
+
+// ─── Health Check ─────────────────────────────────────────────────────────────
 
 app.get("/health", (_req, res) =>
   res.json({ success: true, message: "OK", data: null, error: null, meta: {} }),
 );
 
+// ─── Routes ───────────────────────────────────────────────────────────────────
+
+// NOTE: /api/shops/mine/* must be registered before /api/shops/:slug
+// to prevent Express from treating "mine" as a slug parameter.
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/categories", categoryRouter);
@@ -99,20 +105,16 @@ app.use("/api/payments", paymentRouter);
 app.use("/api/admin/shops", adminShopRouter);
 app.use("/api/admin/orders", adminOrderRouter);
 
+// ─── Docs ─────────────────────────────────────────────────────────────────────
+
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// ─── Fallback & Error Handling ────────────────────────────────────────────────
+
 app.use((_req, res) =>
-  res
-    .status(404)
-    .json({
-      success: false,
-      message: "",
-      data: null,
-      error: "Route not found",
-      meta: {},
-    }),
+  res.status(404).json({ success: false, message: "", data: null, error: "Route not found", meta: {} }),
 );
 
-app.use(errorHandler);
+app.use(errorHandler); // must be last — catches all errors forwarded via next(err)
 
 export default app;

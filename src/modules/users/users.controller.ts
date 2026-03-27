@@ -1,3 +1,11 @@
+/**
+ * users/users.controller.ts
+ *
+ * HTTP layer for user profile and address endpoints.
+ * `req.user` is guaranteed to be set by the `authenticate` middleware
+ * on all routes in this module.
+ */
+
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
 import { updateMeSchema, updatePasswordSchema, addressSchema } from "./users.validation.js";
@@ -12,6 +20,7 @@ import {
 } from "./users.service.js";
 
 export const getMe = (req: Request, res: Response) => {
+  // Strip password hash before sending — never expose it
   const { password: _, ...safeUser } = req.user!;
   respond(res, { data: safeUser });
 };

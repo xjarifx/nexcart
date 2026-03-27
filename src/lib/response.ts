@@ -1,3 +1,18 @@
+/**
+ * lib/response.ts
+ *
+ * Centralised API response helper.
+ * All endpoints must use `respond()` to ensure a consistent response envelope:
+ *
+ * {
+ *   success: boolean,   // true if status < 400
+ *   message: string,    // human-readable message (optional)
+ *   data: T | null,     // response payload
+ *   error: null,        // always null on success (errors use errorHandler)
+ *   meta: {}            // pagination or other metadata
+ * }
+ */
+
 import { Response } from "express";
 
 interface ApiResponse<T = unknown> {
@@ -8,6 +23,11 @@ interface ApiResponse<T = unknown> {
   meta: Record<string, unknown>;
 }
 
+/**
+ * Sends a JSON response using the standard API envelope.
+ * @param res     - Express Response object
+ * @param options - status (default 200), message, data payload, meta object
+ */
 export const respond = <T>(
   res: Response,
   options: {

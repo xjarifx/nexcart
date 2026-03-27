@@ -1,3 +1,10 @@
+/**
+ * users/users.service.ts
+ *
+ * Business logic for user profile management and address CRUD.
+ * Password is always stripped from responses — never returned to the client.
+ */
+
 import bcrypt from "bcryptjs";
 import { AppError } from "../../types/errors.js";
 import {
@@ -14,6 +21,7 @@ import {
 
 // ─── Profile ─────────────────────────────────────────────────────────────────
 
+/** Update name and/or phone. Returns the updated user without the password field. */
 export const updateMeService = async (
   userId: string,
   data: { name?: string; phone?: string },
@@ -26,12 +34,14 @@ export const updateMeService = async (
   return { data: safeUser };
 };
 
+/** Permanently deletes the user account. */
 export const deleteMeService = async (userId: string) => {
   const existing = await findUserById(userId);
   if (!existing) throw new AppError("User not found", 404);
   await deleteUserById(userId);
 };
 
+/** Verifies the current password before hashing and saving the new one. */
 export const updatePasswordService = async (
   userId: string,
   currentPassword: string,
@@ -54,6 +64,11 @@ export const getAddressesService = async (userId: string) => {
   return { data: addresses };
 };
 
+/**
+ * Adds a new address for the user.
+ * If `isDefault` is true, all other addresses are unset as default first
+ * to ensure only one default address exists at a time.
+ */
 export const addAddressService = async (
   userId: string,
   data: {
@@ -71,6 +86,11 @@ export const addAddressService = async (
   return { data: address };
 };
 
+/**
+ * Updates an existing address.
+ * Verifies ownership before updating.
+ * If `isDefault` is being set to true, clears other defaults first.
+ */
 export const updateAddressService = async (
   userId: string,
   addressId: string,
@@ -92,6 +112,7 @@ export const updateAddressService = async (
   return { data: address };
 };
 
+/** Deletes an address after verifying it belongs to the requesting user. */
 export const deleteAddressService = async (userId: string, addressId: string) => {
   const existing = await findAddressById(addressId, userId);
   if (!existing) throw new AppError("Address not found", 404);

@@ -1,15 +1,31 @@
+/**
+ * product/product.repository.ts
+ *
+ * Database access layer for products and inventory.
+ * Public queries filter to isActive=true and shop.status=ACTIVE.
+ * Seller queries return all products for their shop regardless of status.
+ */
+
 import { ShopStatus } from "../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
 
+/** All products belonging to a shop (seller view — includes inactive). */
 export const findProductsByShopId = (shopId: string) =>
   prisma.product.findMany({ where: { shopId }, include: { inventory: true, category: true } });
 
+/** Single product by ID with full relations (used by seller and cart). */
 export const findProductById = (id: string) =>
   prisma.product.findUnique({ where: { id }, include: { inventory: true, category: true, shop: true } });
 
+/** Single product by slug with full relations (used by public detail page). */
 export const findProductBySlug = (slug: string) =>
   prisma.product.findUnique({ where: { slug }, include: { inventory: true, category: true, shop: true } });
 
+/**
+ * Paginated public product listing with optional filters.
+ * Returns a tuple of [products, totalCount] for pagination metadata.
+ * Only active products from active shops are returned.
+ */
 export const findPublicProducts = (filters: {
   search?: string;
   categorySlug?: string;
@@ -35,12 +51,17 @@ export const findPublicProducts = (filters: {
     }),
   };
 
+  // Run count and data queries in parallel for performance
   return Promise.all([
     prisma.product.findMany({ where, skip: filters.skip, take: filters.take, include: { inventory: true, category: true } }),
     prisma.product.count({ where }),
   ]);
 };
 
+/**
+ * Creates a product and its inventory record in a single Prisma nested write.
+ * Inventory starts at stockQuantity=0; use updateInventory to set initial stock.
+ */
 export const createProduct = (data: {
   shopId: string;
   categoryId: string;
@@ -67,8 +88,10 @@ export const updateProductById = (id: string, data: {
   brand?: string;
 }) => prisma.product.update({ where: { id }, data, include: { inventory: true } });
 
+/** Soft-delete: sets isActive=false instead of removing the row. Preserves order history. */
 export const softDeleteProduct = (id: string) =>
   prisma.product.update({ where: { id }, data: { isActive: false } });
 
+/** Overwrites the stock quantity. Called by the seller inventory endpoint. */
 export const updateInventory = (productId: string, stockQuantity: number) =>
   prisma.inventory.update({ where: { productId }, data: { stockQuantity } });

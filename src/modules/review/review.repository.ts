@@ -1,15 +1,24 @@
+/**
+ * review/review.repository.ts
+ *
+ * Database access layer for product reviews.
+ * The unique constraint on (userId, productId) is enforced at the DB level.
+ */
+
 import { prisma } from "../../lib/prisma.js";
 
+/** Returns all reviews for a product, newest first, with reviewer name included. */
 export const findReviewsByProductId = (productId: string) =>
   prisma.review.findMany({
     where: { productId },
-    include: { user: { select: { id: true, name: true } } },
+    include: { user: { select: { id: true, name: true } } }, // only expose id and name, not email/password
     orderBy: { createdAt: "desc" },
   });
 
 export const findReviewById = (id: string) =>
   prisma.review.findUnique({ where: { id } });
 
+/** Looks up a review by the composite unique key (userId + productId). Used to prevent duplicate reviews. */
 export const findReviewByUserAndProduct = (userId: string, productId: string) =>
   prisma.review.findUnique({ where: { userId_productId: { userId, productId } } });
 

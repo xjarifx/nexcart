@@ -1,3 +1,10 @@
+/**
+ * review/review.controller.ts
+ *
+ * HTTP layer for review endpoints.
+ * GET is public. POST and DELETE require authentication (enforced in route file).
+ */
+
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
 import { createReviewSchema } from "./review.validation.js";

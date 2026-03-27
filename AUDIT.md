@@ -175,7 +175,6 @@ Missing:
 
 4. **Fix inventory restoration on order cancellation**
 5. **Fix the checkout race condition** with a `SELECT FOR UPDATE` or atomic update
-6. **Add a startup env validator** (`src/config.ts` with Zod)
 7. **Add pagination to all remaining list endpoints**
 9. **Add category slug uniqueness check on update**
 10. **Add a real payment gateway** (Stripe is the standard choice)
