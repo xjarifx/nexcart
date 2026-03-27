@@ -1,188 +1,137 @@
-# Production Readiness Audit
+# What's Blocking Production
 
-> Last updated: March 26, 2026
-> Overall score: **6.1 / 10** — solid MVP foundation, not yet production-hardened.
-
----
-
-## What's Actually Done Well
-
-- Clean modular structure: every module follows route → controller → service → repository → validation
-- JWT auth with refresh token rotation (opaque token, stored in DB, expiry checked)
-- Zod validation on every input
-- Global error handler with consistent response shape
-- Checkout runs inside a Prisma transaction (atomic)
-- Order status transitions are enforced (sellers can only PENDING→CONFIRMED→SHIPPED, admin controls the rest)
-- Slug uniqueness checked before create/update on shop and product
-- One-review-per-user constraint enforced at both DB and service level
-- Pagination utility exists and is used on the product catalog
-- Seed script covers all models with realistic fake data
-- Swagger UI wired up
-- Tests exist for all 9 modules
+> Last updated: March 27, 2026
 
 ---
 
-## Critical Bugs
+### 1. Checkout race condition — stock can be oversold
+**Severity: Critical bug**
 
-**1. Real credentials committed to `.env`**
-Your `DATABASE_URL`, `ACCESS_TOKEN_SECRET`, `REFRESH_TOKEN_SECRET`, `IMAGEKIT_PRIVATE_KEY` are all in `.env` which is tracked by git. Rotate all of these immediately. Add `.env` to `.gitignore` and use `.env.example` with placeholder values instead.
-
-**2. Race condition in checkout (stock oversell)**
-The stock check and the inventory decrement are two separate steps. Under concurrent load, two users can both pass the stock check and both complete checkout, selling more than available. Fix: use a Postgres `SELECT ... FOR UPDATE` or a single `UPDATE inventory SET stockQuantity = stockQuantity - $qty WHERE productId = $id AND stockQuantity - reservedQuantity >= $qty` inside the transaction, and check the affected row count.
-
-**3. `reservedQuantity` is dead code**
-The field exists in the schema and is read during stock checks, but it is never written to. Either implement proper reservation (reserve on add-to-cart, release on checkout/expiry) or remove the field and simplify the stock check to just `stockQuantity`.
-
-**4. Inventory not restored on order cancellation**
-When an admin cancels an order, `stockQuantity` is never incremented back. The stock is permanently lost.
-
-**5. Seed script stores plaintext passwords**
-`prisma/seed.ts` uses `faker.internet.password()` directly — no bcrypt hashing. Seeded users cannot log in, and if the seed ever runs against a real DB it's a security hole.
-
-**6. `REFRESH_TOKEN_SECRET` env var is loaded but never used**
-Refresh tokens are opaque random bytes, not JWTs, so the secret is pointless. Either use it (sign the refresh token as a JWT) or remove it from `.env` to avoid confusion.
-
-**7. No token blacklist on logout**
-After logout the refresh token is deleted, but the access token (15 min TTL) is still valid. Anyone who intercepts it can keep using the API until it expires. Short TTL helps, but a Redis-backed blacklist or token version counter is the proper fix.
+The stock check and the inventory decrement are two separate steps. Under concurrent load, two users can both pass the `available >= quantity` check before either one decrements, resulting in more units sold than exist. The Prisma transaction wraps the writes but not the read, so the read is unprotected. Fix: replace the pre-flight check with an atomic conditional update inside the transaction and verify the affected row count.
 
 ---
 
-## Security Issues
+### 2. Inventory never restored on order cancellation
+**Severity: Critical bug**
 
-**Critical**
-- `.env` with real secrets in git (see above)
-- No rate limiting on any endpoint — auth routes are wide open to brute force
-- No `helmet` — missing `X-Frame-Options`, `X-Content-Type-Options`, `Strict-Transport-Security`, `Content-Security-Policy` headers
-- No request body size limit — `express.json()` with no `limit` option, DoS via huge payloads
-
-**High**
-- No account lockout after failed login attempts
-- Password minimum is only 8 characters with no complexity requirement
-- `CORS` origin is `process.env.FRONTEND_URL` — if that env var is missing, `cors()` defaults to `*` (all origins)
-- No HTTPS enforcement at the app level
-
-**Medium**
-- Error message `"Email already in use"` leaks user existence — use a generic message like `"Invalid credentials"` for login failures (already done) but registration should also be reconsidered
-- No request ID / correlation ID — impossible to trace a request through logs
-- No input sanitization for XSS (Zod validates shape but doesn't strip HTML/script tags from string fields)
+When an order is cancelled, `stockQuantity` is never incremented back. Every cancellation permanently removes stock from the system. The cancellation logic needs to run an inventory restoration loop inside a transaction — the same items and quantities decremented at checkout must be added back.
 
 ---
 
-## Missing Features (Functionality Gaps)
+### 3. No customer-facing order cancellation
+**Severity: High — missing feature**
 
-**Payments**
-- Payment is always created as `COMPLETED` immediately — there is no real payment gateway integration (Stripe, PayPal, etc.)
-- No webhook handler to receive async payment confirmation
-- No refund flow — `PaymentStatus.REFUNDED` exists in the schema but nothing sets it
-- ImageKit credentials are in `.env` but there is zero upload code anywhere
-
-**Orders**
-- No customer-facing order cancellation endpoint (only admin can cancel)
-- No inventory restoration when an order is cancelled
-
-**Users / Auth**
-- No email verification on registration
-- No password reset / forgot-password flow
-- No 2FA
-- No soft-delete for users — hard-deleting a user breaks order history (foreign key cascade or set-null needed)
-
-**Search & Discovery**
-- No full-text search (Postgres `tsvector` / `pg_trgm` or Elasticsearch)
-- No product sorting (by price, rating, newest)
-- No product filtering by rating
-- No featured/promoted products
-
-**Reviews**
-- No check that the reviewer actually purchased the product before leaving a review
-- No average rating computed/stored on the product (must be calculated on every request)
-
-**Notifications**
-- No email notifications (order confirmation, shipping update, password reset)
-- No push/webhook notifications
+Only admins can cancel orders. A customer who placed a `PENDING` order has no way to cancel it themselves. This is a standard e-commerce expectation. Needs a new endpoint that allows the order owner to cancel while status is still `PENDING`, and must restore inventory (blocked by item 2).
 
 ---
 
-## Pagination Gaps
+### 4. No real payment gateway
+**Severity: High — missing feature**
 
-`paginate()` utility exists but is only used on `GET /api/products`. Every other list endpoint returns all records:
+Every payment is recorded as `COMPLETED` immediately with no actual money movement. The `transactionId` is accepted from the client with zero verification — anyone can submit a fake ID. A real integration (Stripe) requires a server-side payment intent, a webhook to receive async confirmation, and status updated only after the webhook fires. `PaymentStatus.PENDING` and `PaymentStatus.FAILED` exist in the schema but are never used.
 
+---
+
+### 5. No password reset flow
+**Severity: High — missing feature**
+
+There is no forgot-password or reset-password endpoint. A user who forgets their password is permanently locked out with no recovery path. Needs a time-limited signed token, an email with a reset link, and a reset endpoint that verifies the token and updates the password.
+
+---
+
+### 6. No email notifications
+**Severity: High — missing feature**
+
+No email service is wired up anywhere. Users get no registration confirmation, no order confirmation after checkout, no shipping updates, and no password reset email. The reset flow (item 5) is fully blocked until this exists. Recommended: Resend or Nodemailer.
+
+---
+
+### 7. Seed script stores plaintext passwords
+**Severity: High bug**
+
+`prisma/seed.ts` stores `faker.internet.password()` directly without hashing. Seeded users cannot log in, and running the seed against a real database puts plaintext passwords in Postgres. Every user insert needs `await bcrypt.hash(password, 12)` before the value is stored.
+
+---
+
+### 8. No pagination on most list endpoints
+**Severity: Medium — will become critical under load**
+
+`paginate()` and `buildMeta()` exist and work but are only used on `GET /api/products`. Every other list endpoint returns the full table with no limit. These will become slow and memory-heavy as data grows:
+
+- `GET /api/categories`
+- `GET /api/products/:productId/reviews`
+- `GET /api/users/me/addresses`
 - `GET /api/shops/mine/orders`
 - `GET /api/admin/orders`
 - `GET /api/admin/shops`
-- `GET /api/users/me/addresses`
-- `GET /api/products/:productId/reviews`
-- `GET /api/categories`
-
-These will become slow and memory-heavy as data grows.
 
 ---
 
-## Performance & Scalability
+### 9. No request body size limit
+**Severity: Medium — security**
 
-- No database indexes beyond the auto-generated ones on `@unique` fields. The product search does a case-insensitive `LIKE` scan on `name` — add a `gin` index with `pg_trgm` for this.
-- No caching layer (Redis) — every request hits the DB, including repeated reads of the same product/category
-- No connection pooling config — `pg` pool defaults are used, which may be too low under load
-- No background job queue — things like sending emails, updating search indexes, or processing payments should be async
-- No CDN or image optimization pipeline despite ImageKit being configured
+`express.json()` has no `limit` option. A client can send a multi-megabyte JSON body and tie up the event loop while it parses. One line fix: `express.json({ limit: "10kb" })`.
 
 ---
 
-## Code Quality Issues
+### 10. Category slug not checked for uniqueness on update
+**Severity: Medium bug**
 
-**Slug uniqueness on update is inconsistent**
-- `shop.service.ts` correctly checks for slug conflicts before updating ✅
-- `category.service.ts` does NOT check for slug conflicts before updating ❌
-- `product.service.ts` — needs verification
-
-**No constants file**
-Magic strings like `"ACTIVE"`, `"PENDING"`, `"card"` are scattered across the codebase. The enums exist in generated Prisma code but aren't always used consistently.
-
-**No logger**
-`console.error` in the error handler is the only logging. In production you need structured logging (e.g., `pino` or `winston`) with log levels, request IDs, and log shipping.
-
-**No config module**
-Environment variables are read directly with `process.env.X` everywhere. A single `src/config.ts` that validates all required env vars at startup (using Zod) would catch misconfigurations before the server accepts traffic.
-
-**`src/generated/prisma/` should not be in `src/`**
-Generated files should live outside the source tree (e.g., `prisma/generated/`) or be excluded from linting/formatting. Having them in `src/` pollutes the module tree.
-
-**`src/lib/prisma.d.ts` + `prisma.js`**
-There's a `.js` file and a `.d.ts` file for the Prisma client in `src/lib/`. This is a workaround that suggests the Prisma client setup is non-standard. It should be a proper `.ts` file.
+`shop.service.ts` and `product.service.ts` both check for slug conflicts before updating. `category.service.ts` does not. Renaming a category to a name that collides with an existing slug throws a raw Prisma unique constraint error instead of a clean 409. Needs a `findCategoryBySlug(newSlug)` check before the update, matching the pattern already used in the other two services.
 
 ---
 
-## Test Coverage Gaps
+### 11. No average rating on products
+**Severity: Medium — performance and UX**
 
-Current coverage is roughly 40–50% (happy paths only).
+There is no `averageRating` field on `Product`. Any star rating display requires either fetching all reviews and computing client-side, or aggregating on every product query. Neither scales. Needs `averageRating` and `reviewCount` columns maintained atomically on review create and delete.
 
-Missing:
-- Concurrent checkout test (two users buying the last item simultaneously)
-- Invalid UUID inputs (should return 400, not 500)
-- Slug collision on category/product update
-- Pagination boundary cases (page 0, limit 0, limit > 100)
-- Filter combinations on product search
-- Seller trying to update an order that belongs to a different shop
+---
+
+### 12. No DB indexes for search and filter fields
+**Severity: Medium — performance**
+
+Product search uses a case-insensitive `LIKE` scan on `name` with no index — a full table scan on every search request. Needs a `pg_trgm` GIN index on `Product.name`. Also worth indexing `Product.brand`, `Product.price`, and `Order.createdAt` which are used in filters and sorts.
+
+---
+
+### 13. `reservedQuantity` is dead code
+**Severity: Medium — misleading**
+
+`Inventory.reservedQuantity` is read during stock checks but never written to — it is always 0. This creates a false impression that reservation is implemented. Either implement proper reservation (increment on add-to-cart, decrement on checkout or cart expiry) or remove the field and simplify the stock check to `stockQuantity >= quantity`.
+
+---
+
+### 14. No Redis — no caching, no token blacklist
+**Severity: Medium — performance and security**
+
+Two problems Redis solves: hot reads (product catalog, categories) hit Postgres on every request with no cache layer; and after logout the access token (15 min TTL) stays valid with no way to revoke it immediately. Redis with short TTLs handles the cache, and a token JTI blacklist handles immediate revocation.
+
+---
+
+### 15. No email verification on registration
+**Severity: Low — trust and data quality**
+
+Users can register with any email they don't own. The email field cannot be trusted for notifications or recovery. Unverified accounts should be restricted from checkout until the email is confirmed. Blocked by item 6 (email service).
+
+---
+
+### 16. No CI pipeline
+**Severity: Low — developer safety**
+
+No automated check runs on push or pull request. A broken commit can reach `main` undetected. A minimal GitHub Actions workflow running `tsc --noEmit` and `npm test` on every push is a one-file addition.
+
+---
+
+### 17. Test coverage is happy-path only (~40–50%)
+**Severity: Low — quality**
+
+All 9 modules have tests but only for the success path. Untested scenarios that have caused real bugs in similar projects:
+
+- Concurrent checkout (two users buying the last item simultaneously)
+- Invalid UUID path params (should return 400, not a Prisma crash)
+- Slug collision on category update
 - Admin cancelling a delivered order (should be blocked)
-- Payment recorded twice for the same order (should be 409)
-- Review left without purchasing the product
-- Address ownership — using another user's addressId at checkout
-- Token expiry and refresh flow
-- Logout then use old access token
-
----
-
-## What to Do Next (Priority Order)
-
-4. **Fix inventory restoration on order cancellation**
-5. **Fix the checkout race condition** with a `SELECT FOR UPDATE` or atomic update
-7. **Add pagination to all remaining list endpoints**
-9. **Add category slug uniqueness check on update**
-10. **Add a real payment gateway** (Stripe is the standard choice)
-11. **Add email service** (Resend or Nodemailer) for registration and order events
-12. **Add customer order cancellation endpoint** with inventory restoration
-13. **Add average rating to product** (either computed column or updated on review create/delete)
-14. **Add DB indexes** for product name search and common filter fields
-15. **Add Redis** for caching hot reads (product catalog, categories) and access token blacklist
-16. **Fix seed script** to hash passwords with bcrypt
-17. **Expand test coverage** to edge cases and concurrent scenarios
-18. **Add a CI pipeline** (GitHub Actions) that runs tests and type-check on every push
+- Payment submitted twice for the same order (should be 409)
+- Checkout using another user's `addressId` (should be 404)
+- Token refresh after logout (should be 401)
