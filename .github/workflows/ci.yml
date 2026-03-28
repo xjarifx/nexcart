@@ -65,8 +65,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:password@localhost:5432/nexcart_test
 
-      - name: Run Prisma migrations
-        run: npx prisma migrate deploy
+      - name: Push Prisma schema to test DB
+        run: npx prisma db push --skip-generate
         env:
           DATABASE_URL: postgresql://postgres:password@localhost:5432/nexcart_test
 
