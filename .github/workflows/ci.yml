@@ -8,6 +8,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  DATABASE_URL: postgresql://postgres:password@localhost:5432/dummy
 
 jobs:
   lint:
@@ -61,6 +62,8 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/nexcart_test
 
       - name: Run Prisma migrations
         run: npx prisma migrate deploy
@@ -96,9 +99,13 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/dummy
 
       - name: Build project
         run: npm run build
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/dummy
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

@@ -6,6 +6,9 @@ WORKDIR /app
 # Install openssl for Prisma
 RUN apt-get update -y && apt-get install -y openssl
 
+# Standard env for Prisma 7 config validation (dummy URL for build)
+ENV DATABASE_URL=postgresql://dummy:dummy@localhost:1/dummy
+
 COPY package*.json ./
 COPY prisma ./prisma/
 
