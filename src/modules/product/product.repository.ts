@@ -11,15 +11,24 @@ import { prisma } from "../../lib/prisma.js";
 
 /** All products belonging to a shop (seller view — includes inactive). */
 export const findProductsByShopId = (shopId: string) =>
-  prisma.product.findMany({ where: { shopId }, include: { inventory: true, category: true } });
+  prisma.product.findMany({
+    where: { shopId },
+    include: { inventory: true, category: true },
+  });
 
 /** Single product by ID with full relations (used by seller and cart). */
 export const findProductById = (id: string) =>
-  prisma.product.findUnique({ where: { id }, include: { inventory: true, category: true, shop: true } });
+  prisma.product.findUnique({
+    where: { id },
+    include: { inventory: true, category: true, shop: true },
+  });
 
 /** Single product by slug with full relations (used by public detail page). */
 export const findProductBySlug = (slug: string) =>
-  prisma.product.findUnique({ where: { slug }, include: { inventory: true, category: true, shop: true } });
+  prisma.product.findUnique({
+    where: { slug },
+    include: { inventory: true, category: true, shop: true },
+  });
 
 /**
  * Paginated public product listing with optional filters.
@@ -33,14 +42,20 @@ export const findPublicProducts = (filters: {
   shopSlug?: string;
   minPrice?: number;
   maxPrice?: number;
+  sortBy: "createdAt" | "price" | "name";
+  sortOrder: "asc" | "desc";
   skip: number;
   take: number;
 }) => {
   const where = {
     isActive: true,
     shop: { status: ShopStatus.ACTIVE },
-    ...(filters.search && { name: { contains: filters.search, mode: "insensitive" as const } }),
-    ...(filters.brand && { brand: { equals: filters.brand, mode: "insensitive" as const } }),
+    ...(filters.search && {
+      name: { contains: filters.search, mode: "insensitive" as const },
+    }),
+    ...(filters.brand && {
+      brand: { equals: filters.brand, mode: "insensitive" as const },
+    }),
     ...(filters.categorySlug && { category: { slug: filters.categorySlug } }),
     ...(filters.shopSlug && { shop: { slug: filters.shopSlug } }),
     ...((filters.minPrice || filters.maxPrice) && {
@@ -53,7 +68,13 @@ export const findPublicProducts = (filters: {
 
   // Run count and data queries in parallel for performance
   return Promise.all([
-    prisma.product.findMany({ where, skip: filters.skip, take: filters.take, include: { inventory: true, category: true } }),
+    prisma.product.findMany({
+      where,
+      orderBy: { [filters.sortBy]: filters.sortOrder },
+      skip: filters.skip,
+      take: filters.take,
+      include: { inventory: true, category: true },
+    }),
     prisma.product.count({ where }),
   ]);
 };
@@ -79,14 +100,18 @@ export const createProduct = (data: {
     include: { inventory: true },
   });
 
-export const updateProductById = (id: string, data: {
-  categoryId?: string;
-  name?: string;
-  slug?: string;
-  description?: string;
-  price?: number;
-  brand?: string;
-}) => prisma.product.update({ where: { id }, data, include: { inventory: true } });
+export const updateProductById = (
+  id: string,
+  data: {
+    categoryId?: string;
+    name?: string;
+    slug?: string;
+    description?: string;
+    price?: number;
+    brand?: string;
+  },
+) =>
+  prisma.product.update({ where: { id }, data, include: { inventory: true } });
 
 /** Soft-delete: sets isActive=false instead of removing the row. Preserves order history. */
 export const softDeleteProduct = (id: string) =>

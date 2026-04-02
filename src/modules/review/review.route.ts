@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/auth.middleware.js";
+import { sensitiveWriteLimiter } from "../../middleware/rateLimit.middleware.js";
 import { getReviews, createReview, deleteReview } from "./review.controller.js";
 
 // Product review routes — mounted at /api/products/:productId/reviews
@@ -63,7 +64,7 @@ reviewRouter.get("/", getReviews);
  *       409:
  *         description: You have already reviewed this product
  */
-reviewRouter.post("/", authenticate, createReview);
+reviewRouter.post("/", authenticate, sensitiveWriteLimiter, createReview);
 
 // Standalone review routes — mounted at /api/reviews
 export const reviewDeleteRouter = Router();

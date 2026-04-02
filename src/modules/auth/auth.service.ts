@@ -21,6 +21,7 @@ import {
   createUser,
   createRefreshToken,
   deleteRefreshToken,
+  deleteExpiredRefreshTokens,
   findRefreshToken,
   findUserByEmail,
   findUserById,
@@ -57,6 +58,8 @@ export const registerService = async (data: {
 
 /** Validate credentials and issue both tokens. */
 export const loginService = async (email: string, password: string) => {
+  await deleteExpiredRefreshTokens();
+
   const user = await findUserByEmail(email);
   // Use the same error message for both "not found" and "wrong password"
   // to avoid leaking whether an email is registered
@@ -77,6 +80,8 @@ export const loginService = async (email: string, password: string) => {
 
 /** Exchange a valid refresh token for a new access token. */
 export const refreshService = async (token: string) => {
+  await deleteExpiredRefreshTokens();
+
   const stored = await findRefreshToken(token);
   if (!stored) throw new AppError("Invalid refresh token", 401);
 
@@ -95,6 +100,8 @@ export const refreshService = async (token: string) => {
 
 /** Invalidate a refresh token (logout). The access token remains valid until it expires. */
 export const logoutService = async (token: string) => {
+  await deleteExpiredRefreshTokens();
+
   const stored = await findRefreshToken(token);
   if (!stored) throw new AppError("Invalid refresh token", 401);
   await deleteRefreshToken(token);

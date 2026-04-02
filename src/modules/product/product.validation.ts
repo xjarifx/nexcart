@@ -20,7 +20,9 @@ export const createProductSchema = z.object({
 export const updateProductSchema = createProductSchema
   .omit({ stockQuantity: true })
   .partial()
-  .refine((d) => Object.keys(d).length > 0, { message: "At least one field must be provided" });
+  .refine((d) => Object.keys(d).length > 0, {
+    message: "At least one field must be provided",
+  });
 
 /** PUT /api/shops/mine/products/:id/inventory */
 export const updateInventorySchema = z.object({
@@ -29,12 +31,14 @@ export const updateInventorySchema = z.object({
 
 /** GET /api/products — query string filters and pagination */
 export const productQuerySchema = z.object({
-  search: z.string().optional(),       // name contains (case-insensitive)
-  category: z.string().optional(),     // category slug
-  brand: z.string().optional(),        // brand name (case-insensitive)
-  shop: z.string().optional(),         // shop slug
+  search: z.string().optional(), // name contains (case-insensitive)
+  category: z.string().optional(), // category slug
+  brand: z.string().optional(), // brand name (case-insensitive)
+  shop: z.string().optional(), // shop slug
   minPrice: z.coerce.number().positive().optional(),
   maxPrice: z.coerce.number().positive().optional(),
+  sortBy: z.enum(["createdAt", "price", "name"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });

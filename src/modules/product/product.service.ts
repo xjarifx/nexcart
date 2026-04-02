@@ -51,7 +51,14 @@ export const getMyProductsService = async (ownerId: string) => {
  */
 export const createProductService = async (
   ownerId: string,
-  data: { categoryId: string; name: string; description: string; price: number; brand: string; stockQuantity: number },
+  data: {
+    categoryId: string;
+    name: string;
+    description: string;
+    price: number;
+    brand: string;
+    stockQuantity: number;
+  },
 ) => {
   const shop = await getSellerShop(ownerId);
   const category = await findCategoryById(data.categoryId);
@@ -62,7 +69,11 @@ export const createProductService = async (
   if (existing) throw new AppError("Product name already taken", 409);
 
   const { stockQuantity, ...productData } = data;
-  const product = await createProduct({ shopId: shop.id, slug, ...productData });
+  const product = await createProduct({
+    shopId: shop.id,
+    slug,
+    ...productData,
+  });
 
   if (stockQuantity > 0) {
     await updateInventory(product.id, stockQuantity);
@@ -80,7 +91,13 @@ export const createProductService = async (
 export const updateProductService = async (
   ownerId: string,
   productId: string,
-  data: { categoryId?: string; name?: string; description?: string; price?: number; brand?: string },
+  data: {
+    categoryId?: string;
+    name?: string;
+    description?: string;
+    price?: number;
+    brand?: string;
+  },
 ) => {
   const shop = await getSellerShop(ownerId);
   const product = await findProductById(productId);
@@ -98,12 +115,18 @@ export const updateProductService = async (
     if (existing) throw new AppError("Product name already taken", 409);
   }
 
-  const updated = await updateProductById(productId, { ...data, ...(slug && { slug }) });
+  const updated = await updateProductById(productId, {
+    ...data,
+    ...(slug && { slug }),
+  });
   return { data: updated };
 };
 
 /** Soft-deletes a product (sets isActive=false). Preserves order history integrity. */
-export const deleteProductService = async (ownerId: string, productId: string) => {
+export const deleteProductService = async (
+  ownerId: string,
+  productId: string,
+) => {
   const shop = await getSellerShop(ownerId);
   const product = await findProductById(productId);
   if (!product) throw new AppError("Product not found", 404);
@@ -111,7 +134,10 @@ export const deleteProductService = async (ownerId: string, productId: string) =
   await softDeleteProduct(productId);
 };
 
-export const getInventoryService = async (ownerId: string, productId: string) => {
+export const getInventoryService = async (
+  ownerId: string,
+  productId: string,
+) => {
   const shop = await getSellerShop(ownerId);
   const product = await findProductById(productId);
   if (!product) throw new AppError("Product not found", 404);
@@ -120,7 +146,11 @@ export const getInventoryService = async (ownerId: string, productId: string) =>
 };
 
 /** Overwrites the stock quantity for a product. */
-export const updateInventoryService = async (ownerId: string, productId: string, stockQuantity: number) => {
+export const updateInventoryService = async (
+  ownerId: string,
+  productId: string,
+  stockQuantity: number,
+) => {
   const shop = await getSellerShop(ownerId);
   const product = await findProductById(productId);
   if (!product) throw new AppError("Product not found", 404);
@@ -137,6 +167,8 @@ export const getPublicProductsService = async (query: {
   shop?: string;
   minPrice?: number;
   maxPrice?: number;
+  sortBy: "createdAt" | "price" | "name";
+  sortOrder: "asc" | "desc";
   page: number;
   limit: number;
 }) => {
@@ -148,6 +180,8 @@ export const getPublicProductsService = async (query: {
     shopSlug: query.shop,
     minPrice: query.minPrice,
     maxPrice: query.maxPrice,
+    sortBy: query.sortBy,
+    sortOrder: query.sortOrder,
     skip,
     take,
   });

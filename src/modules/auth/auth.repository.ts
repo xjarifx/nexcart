@@ -45,3 +45,10 @@ export const findRefreshToken = async (token: string) => {
 export const deleteRefreshToken = async (token: string) => {
   return prisma.refreshToken.delete({ where: { token } });
 };
+
+/** Remove refresh tokens that are already expired. */
+export const deleteExpiredRefreshTokens = async () => {
+  return prisma.refreshToken.deleteMany({
+    where: { expiresAt: { lt: new Date() } },
+  });
+};

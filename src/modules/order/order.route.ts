@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/auth.middleware.js";
+import { sensitiveWriteLimiter } from "../../middleware/rateLimit.middleware.js";
 import { authorize } from "../../middleware/authorize.middleware.js";
 import { Role } from "../../generated/prisma/enums.js";
 import {
@@ -43,7 +44,7 @@ export const orderRouter = Router();
  *       409:
  *         description: Insufficient stock for one or more items
  */
-orderRouter.post("/", authenticate, checkout);
+orderRouter.post("/", authenticate, sensitiveWriteLimiter, checkout);
 
 /**
  * @openapi

@@ -261,7 +261,7 @@ Two problems Redis solves: hot reads (product catalog, categories) hit Postgres 
 
 ---
 
-### 24. No rate limiting per-user — only per-IP
+### 24. No rate limiting per-user — only per-IP (COMPLETED)
 
 **Severity: Medium — security**
 
@@ -291,7 +291,7 @@ Anyone with an account can review any product without having purchased it. This 
 
 ---
 
-### 27. No request ID / correlation ID
+### 27. No request ID / correlation ID (COMPLETED)
 
 **Severity: Medium — observability**
 
@@ -491,7 +491,7 @@ All update endpoints use `PUT`, but the request bodies are partial (validated wi
 
 ---
 
-### 45. Expired refresh tokens are never cleaned up
+### 45. Expired refresh tokens are never cleaned up (COMPLETED)
 
 **Severity: Low — database hygiene**
 
@@ -501,7 +501,7 @@ Expired `RefreshToken` records are only deleted when a user happens to call `/re
 
 ---
 
-### 46. No sort option on product listing
+### 46. No sort option on product listing (COMPLETED)
 
 **Severity: Low — UX**
 

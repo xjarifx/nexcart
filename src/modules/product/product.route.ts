@@ -48,6 +48,18 @@ export const productRouter = Router();
  *         schema:
  *           type: number
  *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, price, name]
+ *           default: createdAt
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *       - in: query
  *         name: page
  *         schema:
  *           type: integer

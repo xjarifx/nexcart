@@ -17,6 +17,7 @@
  */
 
 import express from "express";
+import { randomUUID } from "crypto";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -48,7 +49,18 @@ import logger from "./lib/logger.js";
 import { config } from "./config.js";
 import { prisma } from "./lib/prisma.js";
 
-const httpLogger = (pinoHttp as unknown as typeof pinoHttp.default)({ logger });
+const httpLogger = (pinoHttp as unknown as typeof pinoHttp.default)({
+  logger,
+  genReqId(req, res) {
+    const requestId = req.headers["x-request-id"];
+    const id =
+      typeof requestId === "string" && requestId.length > 0
+        ? requestId
+        : randomUUID();
+    res.setHeader("X-Request-Id", id);
+    return id;
+  },
+});
 
 const app = express();
 app.set("trust proxy", 1);
@@ -63,8 +75,9 @@ app.use(
       if (config.FRONTEND_URL.includes(origin)) return callback(null, true);
       return callback(new Error("Not allowed by CORS"));
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["X-Request-Id"],
   }),
 );
 app.use(httpLogger); // logs every request with method, path, status, responseTime
@@ -181,15 +194,13 @@ if (config.NODE_ENV !== "production") {
 // ─── Fallback & Error Handling ────────────────────────────────────────────────
 
 app.use((_req, res) =>
-  res
-    .status(404)
-    .json({
-      success: false,
-      message: "",
-      data: null,
-      error: "Route not found",
-      meta: {},
-    }),
+  res.status(404).json({
+    success: false,
+    message: "",
+    data: null,
+    error: "Route not found",
+    meta: {},
+  }),
 );
 
 app.use(errorHandler); // must be last — catches all errors forwarded via next(err)
