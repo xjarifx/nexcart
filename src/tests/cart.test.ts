@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { request, app, prisma, cleanDb, registerAndLogin, makeAdmin, expectSuccess, expectError } from "./helpers.js";
+import {
+  request,
+  app,
+  prisma,
+  cleanDb,
+  registerAndLogin,
+  makeAdmin,
+  expectSuccess,
+  expectError,
+} from "./helpers.js";
 
 let buyerToken: string;
 let cartItemId: string;
@@ -8,10 +17,11 @@ let productId: string;
 beforeAll(async () => {
   await cleanDb();
 
-  const admin = await registerAndLogin({ email: "admin@example.com" });
+  await registerAndLogin({ email: "admin@example.com" });
   await makeAdmin("admin@example.com");
   const adminLogin = await request(app).post("/api/auth/login").send({
-    email: "admin@example.com", password: "password123",
+    email: "admin@example.com",
+    password: "password123",
   });
   const adminToken = adminLogin.body.data.accessToken;
 
@@ -25,7 +35,10 @@ beforeAll(async () => {
   const shopRes = await request(app)
     .post("/api/shops")
     .set("Authorization", `Bearer ${seller.token}`)
-    .send({ name: "Cart Test Shop", description: "Shop for cart testing purposes" });
+    .send({
+      name: "Cart Test Shop",
+      description: "Shop for cart testing purposes",
+    });
   const shopId = shopRes.body.data.id;
 
   await request(app)
@@ -48,11 +61,16 @@ beforeAll(async () => {
   const buyer = await registerAndLogin({ email: "buyer@example.com" });
   buyerToken = buyer.token;
 });
-afterAll(async () => { await cleanDb(); await prisma.$disconnect(); });
+afterAll(async () => {
+  await cleanDb();
+  await prisma.$disconnect();
+});
 
 describe("GET /api/cart", () => {
   it("returns empty cart for new user", async () => {
-    const res = await request(app).get("/api/cart").set("Authorization", `Bearer ${buyerToken}`);
+    const res = await request(app)
+      .get("/api/cart")
+      .set("Authorization", `Bearer ${buyerToken}`);
     expect(res.status).toBe(200);
     expectSuccess(res.body);
   });

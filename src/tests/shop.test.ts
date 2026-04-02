@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { request, app, prisma, cleanDb, registerAndLogin, makeAdmin, expectSuccess, expectError } from "./helpers.js";
+import {
+  request,
+  app,
+  prisma,
+  cleanDb,
+  registerAndLogin,
+  makeAdmin,
+  expectSuccess,
+  expectError,
+} from "./helpers.js";
 
 let sellerToken: string;
 let adminToken: string;
@@ -12,14 +21,18 @@ beforeAll(async () => {
   const seller = await registerAndLogin({ email: "seller@example.com" });
   sellerToken = seller.token;
 
-  const admin = await registerAndLogin({ email: "admin@example.com" });
+  await registerAndLogin({ email: "admin@example.com" });
   await makeAdmin("admin@example.com");
   const loginRes = await request(app).post("/api/auth/login").send({
-    email: "admin@example.com", password: "password123",
+    email: "admin@example.com",
+    password: "password123",
   });
   adminToken = loginRes.body.data.accessToken;
 });
-afterAll(async () => { await cleanDb(); await prisma.$disconnect(); });
+afterAll(async () => {
+  await cleanDb();
+  await prisma.$disconnect();
+});
 
 describe("POST /api/shops", () => {
   it("creates a shop", async () => {

@@ -1,8 +1,20 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { request, app, prisma, cleanDb, registerUser, loginUser, expectSuccess, expectError } from "./helpers.js";
+import {
+  request,
+  app,
+  prisma,
+  cleanDb,
+  expectSuccess,
+  expectError,
+} from "./helpers.js";
 
-beforeAll(async () => { await cleanDb(); });
-afterAll(async () => { await cleanDb(); await prisma.$disconnect(); });
+beforeAll(async () => {
+  await cleanDb();
+});
+afterAll(async () => {
+  await cleanDb();
+  await prisma.$disconnect();
+});
 
 describe("POST /api/auth/register", () => {
   it("registers a new user", async () => {
@@ -91,14 +103,18 @@ describe("POST /api/auth/refresh", () => {
     });
     const { refreshToken } = loginRes.body.data;
 
-    const res = await request(app).post("/api/auth/refresh").send({ refreshToken });
+    const res = await request(app)
+      .post("/api/auth/refresh")
+      .send({ refreshToken });
     expect(res.status).toBe(200);
     expectSuccess(res.body);
     expect(res.body.data).toHaveProperty("accessToken");
   });
 
   it("rejects invalid refresh token", async () => {
-    const res = await request(app).post("/api/auth/refresh").send({ refreshToken: "invalid" });
+    const res = await request(app)
+      .post("/api/auth/refresh")
+      .send({ refreshToken: "invalid" });
     expect(res.status).toBe(401);
     expectError(res.body);
   });

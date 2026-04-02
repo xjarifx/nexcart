@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { request, app, prisma, cleanDb, registerAndLogin, makeAdmin, expectSuccess, expectError } from "./helpers.js";
+import {
+  request,
+  app,
+  prisma,
+  cleanDb,
+  registerAndLogin,
+  makeAdmin,
+  expectSuccess,
+  expectError,
+} from "./helpers.js";
 
 let sellerToken: string;
 let adminToken: string;
@@ -11,10 +20,11 @@ beforeAll(async () => {
   await cleanDb();
 
   // admin — create category
-  const admin = await registerAndLogin({ email: "admin@example.com" });
+  await registerAndLogin({ email: "admin@example.com" });
   await makeAdmin("admin@example.com");
   const adminLogin = await request(app).post("/api/auth/login").send({
-    email: "admin@example.com", password: "password123",
+    email: "admin@example.com",
+    password: "password123",
   });
   adminToken = adminLogin.body.data.accessToken;
 
@@ -38,7 +48,10 @@ beforeAll(async () => {
     .put(`/api/admin/shops/${shopId}/approve`)
     .set("Authorization", `Bearer ${adminToken}`);
 });
-afterAll(async () => { await cleanDb(); await prisma.$disconnect(); });
+afterAll(async () => {
+  await cleanDb();
+  await prisma.$disconnect();
+});
 
 describe("POST /api/shops/mine/products", () => {
   it("creates a product", async () => {
@@ -104,7 +117,9 @@ describe("GET /api/products (public catalog)", () => {
   });
 
   it("filters by minPrice/maxPrice", async () => {
-    const res = await request(app).get("/api/products?minPrice=500&maxPrice=1500");
+    const res = await request(app).get(
+      "/api/products?minPrice=500&maxPrice=1500",
+    );
     expect(res.status).toBe(200);
     expect(res.body.data.length).toBeGreaterThan(0);
   });
