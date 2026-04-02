@@ -314,7 +314,9 @@ describe("Admin order management", () => {
 
     expect(inventoryBefore).not.toBeNull();
     expect(inventoryAfter).not.toBeNull();
-    expect(inventoryAfter!.stockQuantity).toBe(inventoryBefore!.stockQuantity + 2);
+    expect(inventoryAfter!.stockQuantity).toBe(
+      inventoryBefore!.stockQuantity + 2,
+    );
   });
 
   it("rejects cancelling an already cancelled order", async () => {
