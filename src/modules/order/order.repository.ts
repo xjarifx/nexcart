@@ -8,6 +8,7 @@
  */
 
 import { OrderStatus } from "../../generated/prisma/enums.js";
+import { Prisma } from "../../generated/prisma/client.js";
 import { AppError } from "../../types/errors.js";
 import { prisma } from "../../lib/prisma.js";
 
@@ -43,12 +44,46 @@ export const findAllOrders = () =>
     orderBy: { createdAt: "desc" },
   });
 
-export const updateOrderStatus = (id: string, status: OrderStatus) =>
-  prisma.order.update({
-    where: { id },
-    data: { status },
-    include: orderInclude,
+export const updateOrderStatus = async (id: string, status: OrderStatus) => {
+  if (status !== OrderStatus.CANCELLED) {
+    return prisma.order.update({
+      where: { id },
+      data: { status },
+      include: orderInclude,
+    });
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+
+    if (!order) throw new AppError("Order not found", 404);
+    if (order.status === OrderStatus.CANCELLED)
+      throw new AppError("Order is already cancelled", 400);
+
+    for (const item of order.items) {
+      const { count } = await tx.inventory.updateMany({
+        where: { productId: item.productId },
+        data: { stockQuantity: { increment: item.quantity } },
+      });
+
+      if (count !== 1) {
+        throw new AppError(
+          `Inventory not found for product ${item.productId}`,
+          409,
+        );
+      }
+    }
+
+    return tx.order.update({
+      where: { id },
+      data: { status },
+      include: orderInclude,
+    });
   });
+};
 
 /** Fetches the user's cart with full product and inventory data needed for checkout validation. */
 export const findCartWithItems = (userId: string) =>
@@ -89,8 +124,11 @@ export const createOrderTransaction = async (data: {
   return prisma.$transaction(async (tx) => {
     // Step 1: Decrement stock only if enough inventory is still available.
     for (const item of data.items) {
-      const rowsAffected = await tx.$executeRawUnsafe(
-        `UPDATE "Inventory" SET "stockQuantity" = "stockQuantity" - ${item.quantity} WHERE "productId" = '${item.productId}' AND "stockQuantity" >= ${item.quantity}`,
+      const rowsAffected = await tx.$executeRaw(
+        Prisma.sql`UPDATE "Inventory"
+                   SET "stockQuantity" = "stockQuantity" - ${item.quantity}
+                   WHERE "productId" = ${item.productId}
+                     AND "stockQuantity" >= ${item.quantity}`,
       );
 
       if (rowsAffected !== 1) {

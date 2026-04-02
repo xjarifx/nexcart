@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "nexcart-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "REST API for the Nexcart multi-vendor e-commerce platform.",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -13,10 +13,17 @@
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "ecommerce",
+    "api",
+    "prisma",
+    "express",
+    "typescript"
+  ],
+  "author": "Nexcart",
   "license": "ISC",
   "dependencies": {
     "@prisma/adapter-pg": "^7.5.0",

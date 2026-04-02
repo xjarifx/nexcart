@@ -19,7 +19,14 @@ export const findCategoryBySlug = (slug: string) =>
   });
 
 export const findCategoryById = (id: string) =>
-  prisma.category.findUnique({ where: { id } });
+  prisma.category.findUnique({
+    where: { id },
+    include: {
+      _count: {
+        select: { children: true, products: true },
+      },
+    },
+  });
 
 /** Case-insensitive name lookup — used to prevent duplicate category names. */
 export const findCategoryByName = (name: string) =>

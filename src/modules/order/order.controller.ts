@@ -13,6 +13,7 @@ import {
   checkoutService,
   getMyOrdersService,
   getMyOrderByIdService,
+  cancelMyOrderService,
   getShopOrdersService,
   updateShopOrderStatusService,
   getAllOrdersService,
@@ -21,44 +22,98 @@ import {
 
 // ─── Buyer ────────────────────────────────────────────────────────────────────
 
-export const checkout = async (req: Request, res: Response, next: NextFunction) => {
+export const checkout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { addressId } = checkoutSchema.parse(req.body);
   const result = await checkoutService(req.user!.id, addressId);
-  respond(res, { status: 201, message: "Order placed successfully", data: result.data });
+  respond(res, {
+    status: 201,
+    message: "Order placed successfully",
+    data: result.data,
+  });
 };
 
-export const getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
+export const getMyOrders = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const result = await getMyOrdersService(req.user!.id);
   respond(res, { data: result.data });
 };
 
-export const getMyOrderById = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await getMyOrderByIdService(req.user!.id, req.params.id as string);
+export const getMyOrderById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const result = await getMyOrderByIdService(
+    req.user!.id,
+    req.params.id as string,
+  );
   respond(res, { data: result.data });
+};
+
+export const cancelMyOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const result = await cancelMyOrderService(
+    req.user!.id,
+    req.params.id as string,
+  );
+  respond(res, { message: "Order cancelled", data: result.data });
 };
 
 // ─── Seller ───────────────────────────────────────────────────────────────────
 
-export const getShopOrders = async (req: Request, res: Response, next: NextFunction) => {
+export const getShopOrders = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const result = await getShopOrdersService(req.user!.id);
   respond(res, { data: result.data });
 };
 
-export const updateShopOrderStatus = async (req: Request, res: Response, next: NextFunction) => {
+export const updateShopOrderStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { status } = updateOrderStatusSchema.parse(req.body);
-  const result = await updateShopOrderStatusService(req.user!.id, req.params.id as string, status);
+  const result = await updateShopOrderStatusService(
+    req.user!.id,
+    req.params.id as string,
+    status,
+  );
   respond(res, { message: "Order status updated", data: result.data });
 };
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
-export const getAllOrders = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllOrders = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const result = await getAllOrdersService();
   respond(res, { data: result.data });
 };
 
-export const adminUpdateOrderStatus = async (req: Request, res: Response, next: NextFunction) => {
+export const adminUpdateOrderStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { status } = updateOrderStatusSchema.parse(req.body);
-  const result = await adminUpdateOrderStatusService(req.params.id as string, status);
+  const result = await adminUpdateOrderStatusService(
+    req.params.id as string,
+    status,
+  );
   respond(res, { message: "Order status updated", data: result.data });
 };

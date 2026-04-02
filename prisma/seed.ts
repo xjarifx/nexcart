@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { faker } from "@faker-js/faker";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -26,14 +27,19 @@ async function main() {
   await prisma.user.deleteMany();
 
   // Users
-  const users = Array.from({ length: 50 }).map(() => ({
-    id: faker.string.uuid(),
-    name: faker.person.fullName(),
-    email: faker.internet.email(),
-    password: faker.internet.password(),
-    phone: faker.phone.number(),
-    createdAt: faker.date.past(),
-  }));
+  const users = await Promise.all(
+    Array.from({ length: 50 }).map(async () => {
+      const plainPassword = faker.internet.password();
+      return {
+        id: faker.string.uuid(),
+        name: faker.person.fullName(),
+        email: faker.internet.email(),
+        password: await bcrypt.hash(plainPassword, 12),
+        phone: faker.phone.number(),
+        createdAt: faker.date.past(),
+      };
+    }),
+  );
   await prisma.user.createMany({ data: users });
 
   // Addresses
@@ -106,7 +112,7 @@ async function main() {
   const inventory = products.map((p) => ({
     productId: p.id,
     stockQuantity: faker.number.int({ min: 0, max: 100 }),
-    reservedQuantity: faker.number.int({ min: 0, max: 10 }),
+    reservedQuantity: 0,
   }));
   await prisma.inventory.createMany({ data: inventory });
 
@@ -171,19 +177,19 @@ async function main() {
   );
   await prisma.orderItem.createMany({ data: orderItems });
 
-  const payments = orders.map((order) => ({
-    id: faker.string.uuid(),
-    orderId: order.id,
-    paymentMethod: faker.helpers.arrayElement(["card", "paypal", "bank"]),
-    status: faker.helpers.arrayElement([
-      "PENDING",
-      "COMPLETED",
-      "FAILED",
-      "REFUNDED",
-    ]),
-    transactionId: faker.string.uuid(),
-    createdAt: faker.date.past(),
-  }));
+  const payments = orders
+    .filter((order) => order.status !== "CANCELLED")
+    .map((order) => ({
+      id: faker.string.uuid(),
+      orderId: order.id,
+      paymentMethod: faker.helpers.arrayElement(["card", "paypal", "bank"]),
+      status:
+        order.status === "DELIVERED" || order.status === "SHIPPED"
+          ? "COMPLETED"
+          : faker.helpers.arrayElement(["PENDING", "FAILED"]),
+      transactionId: faker.string.uuid(),
+      createdAt: faker.date.past(),
+    }));
   await prisma.payment.createMany({ data: payments });
 
   // Reviews: ensure each (userId, productId) pair is unique by selecting unique products per user

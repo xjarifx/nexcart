@@ -88,6 +88,18 @@ export const getMyOrderByIdService = async (
   return { data: order };
 };
 
+export const cancelMyOrderService = async (userId: string, orderId: string) => {
+  const order = await findOrderById(orderId);
+  if (!order) throw new AppError("Order not found", 404);
+  if (order.userId !== userId) throw new AppError("Forbidden", 403);
+  if (order.status !== OrderStatus.PENDING) {
+    throw new AppError("Only pending orders can be cancelled", 400);
+  }
+
+  const cancelled = await updateOrderStatus(orderId, OrderStatus.CANCELLED);
+  return { data: cancelled };
+};
+
 // ─── Seller ───────────────────────────────────────────────────────────────────
 
 export const getShopOrdersService = async (ownerId: string) => {
@@ -153,10 +165,19 @@ export const adminUpdateOrderStatusService = async (
   const order = await findOrderById(orderId);
   if (!order) throw new AppError("Order not found", 404);
 
+  if (
+    order.status === OrderStatus.CANCELLED &&
+    status !== OrderStatus.CANCELLED
+  ) {
+    throw new AppError("Cannot transition a cancelled order", 400);
+  }
+
   if (status === OrderStatus.CANCELLED) {
     // Cannot cancel an already-delivered order
     if (order.status === OrderStatus.DELIVERED)
       throw new AppError("Cannot cancel a delivered order", 400);
+    if (order.status === OrderStatus.CANCELLED)
+      throw new AppError("Order is already cancelled", 400);
   } else {
     // Enforce forward-only progression for non-cancellation transitions
     const statusOrder: OrderStatus[] = [

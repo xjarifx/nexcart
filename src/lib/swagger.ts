@@ -61,7 +61,10 @@ const options: swaggerJsdoc.Options = {
       { name: "Admin", description: "Admin-only operations" },
     ],
   },
-  apis: ["./src/modules/**/*.route.ts"],
+  apis: [
+    "./src/modules/**/*.route.{ts,js}",
+    "./dist/src/modules/**/*.route.js",
+  ],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

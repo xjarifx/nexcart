@@ -18,6 +18,7 @@ import {
   findReviewsByProductId,
   findReviewById,
   findReviewByUserAndProduct,
+  hasDeliveredOrderForProduct,
   createReview,
   deleteReviewById,
 } from "./review.repository.js";
@@ -39,7 +40,13 @@ export const createReviewService = async (
 
   // Prevent duplicate reviews from the same user
   const existing = await findReviewByUserAndProduct(userId, productId);
-  if (existing) throw new AppError("You have already reviewed this product", 409);
+  if (existing)
+    throw new AppError("You have already reviewed this product", 409);
+
+  const hasPurchased = await hasDeliveredOrderForProduct(userId, productId);
+  if (!hasPurchased) {
+    throw new AppError("You can only review products you have received", 403);
+  }
 
   const review = await createReview({ userId, productId, ...data });
   return { data: review };

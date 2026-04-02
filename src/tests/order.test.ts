@@ -293,4 +293,37 @@ describe("Admin order management", () => {
     expectSuccess(res.body);
     expect(res.body.data.status).toBe("SHIPPED");
   });
+
+  it("PUT /api/admin/orders/:id — cancelling restores inventory", async () => {
+    const inventoryBefore = await prisma.inventory.findUnique({
+      where: { productId },
+    });
+
+    const res = await request(app)
+      .put(`/api/admin/orders/${orderId}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ status: "CANCELLED" });
+
+    expect(res.status).toBe(200);
+    expectSuccess(res.body);
+    expect(res.body.data.status).toBe("CANCELLED");
+
+    const inventoryAfter = await prisma.inventory.findUnique({
+      where: { productId },
+    });
+
+    expect(inventoryBefore).not.toBeNull();
+    expect(inventoryAfter).not.toBeNull();
+    expect(inventoryAfter!.stockQuantity).toBe(inventoryBefore!.stockQuantity + 2);
+  });
+
+  it("rejects cancelling an already cancelled order", async () => {
+    const res = await request(app)
+      .put(`/api/admin/orders/${orderId}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ status: "CANCELLED" });
+
+    expect(res.status).toBe(400);
+    expectError(res.body);
+  });
 });

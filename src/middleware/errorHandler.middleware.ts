@@ -13,6 +13,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
+import { Prisma } from "../generated/prisma/client.js";
 import { AppError } from "../types/errors.js";
 import logger from "../lib/logger.js";
 
@@ -35,6 +36,22 @@ export const errorHandler = (
   // Known application error — use the status code and message from the throw site
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({ ...body, error: err.message });
+  }
+
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === "P2002") {
+      return res
+        .status(409)
+        .json({ ...body, error: "Resource already exists" });
+    }
+    if (err.code === "P2025") {
+      return res.status(404).json({ ...body, error: "Resource not found" });
+    }
+    if (err.code === "P2003") {
+      return res
+        .status(400)
+        .json({ ...body, error: "Invalid relation reference" });
+    }
   }
 
   // Unexpected error — log full details server-side, return generic message to client

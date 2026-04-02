@@ -37,6 +37,4 @@ ENV NODE_ENV=production
 
 EXPOSE 3000
 
-# We use a shell script or a multi-command here to handle Prisma migrations
-# But for simplicity, we provide a start command
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+CMD ["npm", "start"]

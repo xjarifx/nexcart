@@ -75,6 +75,13 @@ export const updateCategoryService = async (
   }
 
   const slug = data.name ? slugify(data.name) : undefined;
+  if (slug) {
+    const conflicting = await findCategoryBySlug(slug);
+    if (conflicting && conflicting.id !== id) {
+      throw new AppError("Category slug already exists", 409);
+    }
+  }
+
   const category = await updateCategoryById(id, {
     ...data,
     ...(slug && { slug }),
@@ -85,5 +92,13 @@ export const updateCategoryService = async (
 export const deleteCategoryService = async (id: string) => {
   const existing = await findCategoryById(id);
   if (!existing) throw new AppError("Category not found", 404);
+
+  if (existing._count.children > 0) {
+    throw new AppError("Cannot delete category with child categories", 409);
+  }
+  if (existing._count.products > 0) {
+    throw new AppError("Cannot delete category with products", 409);
+  }
+
   await deleteCategoryById(id);
 };

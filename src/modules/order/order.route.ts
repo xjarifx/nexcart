@@ -6,6 +6,7 @@ import {
   checkout,
   getMyOrders,
   getMyOrderById,
+  cancelMyOrder,
   getShopOrders,
   updateShopOrderStatus,
   getAllOrders,
@@ -82,6 +83,7 @@ orderRouter.get("/", authenticate, getMyOrders);
  *         description: Order not found
  */
 orderRouter.get("/:id", authenticate, getMyOrderById);
+orderRouter.put("/:id/cancel", authenticate, cancelMyOrder);
 
 // Seller order routes — mounted at /api/shops/mine/orders
 export const sellerOrderRouter = Router({ mergeParams: true });
@@ -191,4 +193,9 @@ adminOrderRouter.get("/", authenticate, authorize(Role.ADMIN), getAllOrders);
  *       404:
  *         description: Order not found
  */
-adminOrderRouter.put("/:id", authenticate, authorize(Role.ADMIN), adminUpdateOrderStatus);
+adminOrderRouter.put(
+  "/:id",
+  authenticate,
+  authorize(Role.ADMIN),
+  adminUpdateOrderStatus,
+);

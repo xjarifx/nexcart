@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { request, app, prisma, cleanDb, registerAndLogin, makeAdmin, expectSuccess, expectError } from "./helpers.js";
+import {
+  request,
+  app,
+  prisma,
+  cleanDb,
+  registerAndLogin,
+  makeAdmin,
+  expectSuccess,
+  expectError,
+} from "./helpers.js";
 
 let buyerToken: string;
 let otherToken: string;
@@ -12,7 +21,8 @@ beforeAll(async () => {
   await registerAndLogin({ email: "admin@example.com" });
   await makeAdmin("admin@example.com");
   const adminLogin = await request(app).post("/api/auth/login").send({
-    email: "admin@example.com", password: "password123",
+    email: "admin@example.com",
+    password: "password123",
   });
   const adminToken = adminLogin.body.data.accessToken;
 
@@ -26,7 +36,10 @@ beforeAll(async () => {
   const shopRes = await request(app)
     .post("/api/shops")
     .set("Authorization", `Bearer ${seller.token}`)
-    .send({ name: "Review Shop", description: "Shop for review testing purposes" });
+    .send({
+      name: "Review Shop",
+      description: "Shop for review testing purposes",
+    });
   await request(app)
     .put(`/api/admin/shops/${shopRes.body.data.id}/approve`)
     .set("Authorization", `Bearer ${adminToken}`);
@@ -47,10 +60,47 @@ beforeAll(async () => {
   const buyer = await registerAndLogin({ email: "buyer@example.com" });
   buyerToken = buyer.token;
 
+  const buyerUser = await prisma.user.findUnique({
+    where: { email: "buyer@example.com" },
+  });
+  const buyerAddress = await prisma.address.create({
+    data: {
+      userId: buyerUser!.id,
+      addressLine1: "123 Buyer Street",
+      city: "Dhaka",
+      state: "Dhaka",
+      postalCode: "1207",
+      country: "Bangladesh",
+      isDefault: true,
+    },
+  });
+
+  const deliveredOrder = await prisma.order.create({
+    data: {
+      userId: buyerUser!.id,
+      addressId: buyerAddress.id,
+      status: "DELIVERED",
+      totalAmount: 29.99,
+    },
+  });
+
+  await prisma.orderItem.create({
+    data: {
+      orderId: deliveredOrder.id,
+      productId,
+      shopId: productRes.body.data.shopId,
+      quantity: 1,
+      priceAtPurchase: 29.99,
+    },
+  });
+
   const other = await registerAndLogin({ email: "other@example.com" });
   otherToken = other.token;
 });
-afterAll(async () => { await cleanDb(); await prisma.$disconnect(); });
+afterAll(async () => {
+  await cleanDb();
+  await prisma.$disconnect();
+});
 
 describe("GET /api/products/:productId/reviews", () => {
   it("returns empty reviews list", async () => {
@@ -61,7 +111,9 @@ describe("GET /api/products/:productId/reviews", () => {
   });
 
   it("returns 404 for unknown product", async () => {
-    const res = await request(app).get("/api/products/00000000-0000-0000-0000-000000000000/reviews");
+    const res = await request(app).get(
+      "/api/products/00000000-0000-0000-0000-000000000000/reviews",
+    );
     expect(res.status).toBe(404);
     expectError(res.body);
   });

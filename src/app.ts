@@ -21,30 +21,48 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
-const httpLogger = (pinoHttp as unknown as typeof pinoHttp.default)({ logger });
 import swaggerUi from "swagger-ui-express";
 
 import authRouter from "./modules/auth/auth.route.js";
 import userRouter from "./modules/users/users.route.js";
 import categoryRouter from "./modules/category/category.route.js";
 import shopRouter, { adminShopRouter } from "./modules/shop/shop.route.js";
-import { productRouter, sellerProductRouter } from "./modules/product/product.route.js";
+import {
+  productRouter,
+  sellerProductRouter,
+} from "./modules/product/product.route.js";
 import cartRouter from "./modules/cart/cart.route.js";
-import { orderRouter, sellerOrderRouter, adminOrderRouter } from "./modules/order/order.route.js";
+import {
+  orderRouter,
+  sellerOrderRouter,
+  adminOrderRouter,
+} from "./modules/order/order.route.js";
 import paymentRouter from "./modules/payment/payment.route.js";
-import { reviewRouter, reviewDeleteRouter } from "./modules/review/review.route.js";
+import {
+  reviewRouter,
+  reviewDeleteRouter,
+} from "./modules/review/review.route.js";
 import { swaggerSpec } from "./lib/swagger.js";
 import { errorHandler } from "./middleware/errorHandler.middleware.js";
 import logger from "./lib/logger.js";
+import { config } from "./config.js";
+import { prisma } from "./lib/prisma.js";
+
+const httpLogger = (pinoHttp as unknown as typeof pinoHttp.default)({ logger });
 
 const app = express();
+app.set("trust proxy", 1);
 
 // ─── Security & Logging ───────────────────────────────────────────────────────
 
 app.use(helmet()); // sets X-Frame-Options, CSP, HSTS, and 8 other headers
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (config.FRONTEND_URL.includes(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
@@ -53,25 +71,57 @@ app.use(httpLogger); // logs every request with method, path, status, responseTi
 
 // ─── Body Parsing ─────────────────────────────────────────────────────────────
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+
+const uuidParamNames = ["id", "orderId", "productId", "addressId"];
+for (const paramName of uuidParamNames) {
+  app.param(paramName, (req, res, next, value) => {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        value,
+      );
+    if (!isUuid) {
+      return res.status(400).json({
+        success: false,
+        message: "",
+        data: null,
+        error: `Invalid ${paramName} format`,
+        meta: {},
+      });
+    }
+    return next();
+  });
+}
 
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
 
 // Tight limit on auth routes to slow down brute-force attacks
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,                   // 20 requests per window per IP
-  message: { success: false, message: "", data: null, error: "Too many requests, please try again later.", meta: {} },
-  standardHeaders: true,     // sends RateLimit-* headers
+  max: 20, // 20 requests per window per IP
+  message: {
+    success: false,
+    message: "",
+    data: null,
+    error: "Too many requests, please try again later.",
+    meta: {},
+  },
+  standardHeaders: true, // sends RateLimit-* headers
   legacyHeaders: false,
 });
 
 // Looser limit for the rest of the API
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300,                  // 300 requests per window per IP
-  message: { success: false, message: "", data: null, error: "Too many requests, please try again later.", meta: {} },
+  max: 300, // 300 requests per window per IP
+  message: {
+    success: false,
+    message: "",
+    data: null,
+    error: "Too many requests, please try again later.",
+    meta: {},
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -82,9 +132,26 @@ app.use("/api", apiLimiter);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
-app.get("/health", (_req, res) =>
-  res.json({ success: true, message: "OK", data: null, error: null, meta: {} }),
-);
+app.get("/health", async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return res.json({
+      success: true,
+      message: "OK",
+      data: { database: "up" },
+      error: null,
+      meta: {},
+    });
+  } catch {
+    return res.status(503).json({
+      success: false,
+      message: "",
+      data: { database: "down" },
+      error: "Database unavailable",
+      meta: {},
+    });
+  }
+});
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
@@ -107,12 +174,22 @@ app.use("/api/admin/orders", adminOrderRouter);
 
 // ─── Docs ─────────────────────────────────────────────────────────────────────
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+if (config.NODE_ENV !== "production") {
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 // ─── Fallback & Error Handling ────────────────────────────────────────────────
 
 app.use((_req, res) =>
-  res.status(404).json({ success: false, message: "", data: null, error: "Route not found", meta: {} }),
+  res
+    .status(404)
+    .json({
+      success: false,
+      message: "",
+      data: null,
+      error: "Route not found",
+      meta: {},
+    }),
 );
 
 app.use(errorHandler); // must be last — catches all errors forwarded via next(err)
