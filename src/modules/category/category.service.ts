@@ -7,9 +7,11 @@
  */
 
 import { slugify } from "../../lib/slug.js";
+import { paginate, buildMeta } from "../../lib/paginate.js";
 import { AppError } from "../../types/errors.js";
 import {
   findAllCategories,
+  countCategories,
   findCategoryBySlug,
   findCategoryById,
   findCategoryByName,
@@ -18,9 +20,13 @@ import {
   deleteCategoryById,
 } from "./category.repository.js";
 
-export const getAllCategoriesService = async () => {
-  const categories = await findAllCategories();
-  return { data: categories };
+export const getAllCategoriesService = async (page: number, limit: number) => {
+  const { skip, take } = paginate(page, limit);
+  const [categories, total] = await Promise.all([
+    findAllCategories(skip, take),
+    countCategories(),
+  ]);
+  return { data: categories, meta: buildMeta(total, page, limit) };
 };
 
 export const getCategoryBySlugService = async (slug: string) => {

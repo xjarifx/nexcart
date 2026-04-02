@@ -8,8 +8,15 @@
 import { prisma } from "../../lib/prisma.js";
 
 /** Returns all categories with their immediate children included. */
-export const findAllCategories = () =>
-  prisma.category.findMany({ include: { children: true } });
+export const findAllCategories = (skip: number, take: number) =>
+  prisma.category.findMany({
+    skip,
+    take,
+    include: { children: true },
+    orderBy: { name: "asc" },
+  });
+
+export const countCategories = () => prisma.category.count();
 
 /** Finds a category by slug, including parent and children for full context. */
 export const findCategoryBySlug = (slug: string) =>

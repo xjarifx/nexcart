@@ -86,6 +86,7 @@ shopRouter.get("/mine", authenticate, getMyShop);
  *         description: No shop found for this user
  */
 shopRouter.put("/mine", authenticate, updateMyShop);
+shopRouter.patch("/mine", authenticate, updateMyShop);
 
 /**
  * @openapi
@@ -154,7 +155,18 @@ adminShopRouter.get("/", authenticate, authorize(Role.ADMIN), getAllShops);
  *       404:
  *         description: Shop not found
  */
-adminShopRouter.put("/:id/approve", authenticate, authorize(Role.ADMIN), approveShop);
+adminShopRouter.put(
+  "/:id/approve",
+  authenticate,
+  authorize(Role.ADMIN),
+  approveShop,
+);
+adminShopRouter.patch(
+  "/:id/approve",
+  authenticate,
+  authorize(Role.ADMIN),
+  approveShop,
+);
 
 /**
  * @openapi
@@ -177,4 +189,15 @@ adminShopRouter.put("/:id/approve", authenticate, authorize(Role.ADMIN), approve
  *       404:
  *         description: Shop not found
  */
-adminShopRouter.put("/:id/suspend", authenticate, authorize(Role.ADMIN), suspendShop);
+adminShopRouter.put(
+  "/:id/suspend",
+  authenticate,
+  authorize(Role.ADMIN),
+  suspendShop,
+);
+adminShopRouter.patch(
+  "/:id/suspend",
+  authenticate,
+  authorize(Role.ADMIN),
+  suspendShop,
+);

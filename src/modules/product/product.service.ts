@@ -14,10 +14,12 @@
 import { slugify } from "../../lib/slug.js";
 import { paginate, buildMeta } from "../../lib/paginate.js";
 import { AppError } from "../../types/errors.js";
+import { ShopStatus } from "../../generated/prisma/enums.js";
 import { findShopByOwnerId } from "../shop/shop.repository.js";
 import { findCategoryById } from "../category/category.repository.js";
 import {
   findProductsByShopId,
+  countProductsByShopId,
   findProductById,
   findProductBySlug,
   findPublicProducts,
@@ -37,10 +39,24 @@ const getSellerShop = async (ownerId: string) => {
   return shop;
 };
 
-export const getMyProductsService = async (ownerId: string) => {
+const ensureActiveShop = (status: ShopStatus) => {
+  if (status !== ShopStatus.ACTIVE) {
+    throw new AppError("Only active shops can perform this action", 403);
+  }
+};
+
+export const getMyProductsService = async (
+  ownerId: string,
+  page: number,
+  limit: number,
+) => {
   const shop = await getSellerShop(ownerId);
-  const products = await findProductsByShopId(shop.id);
-  return { data: products };
+  const { skip, take } = paginate(page, limit);
+  const [products, total] = await Promise.all([
+    findProductsByShopId(shop.id, skip, take),
+    countProductsByShopId(shop.id),
+  ]);
+  return { data: products, meta: buildMeta(total, page, limit) };
 };
 
 /**
@@ -57,10 +73,12 @@ export const createProductService = async (
     description: string;
     price: number;
     brand: string;
+    images?: string[];
     stockQuantity: number;
   },
 ) => {
   const shop = await getSellerShop(ownerId);
+  ensureActiveShop(shop.status);
   const category = await findCategoryById(data.categoryId);
   if (!category) throw new AppError("Category not found", 404);
 
@@ -97,9 +115,11 @@ export const updateProductService = async (
     description?: string;
     price?: number;
     brand?: string;
+    images?: string[];
   },
 ) => {
   const shop = await getSellerShop(ownerId);
+  ensureActiveShop(shop.status);
   const product = await findProductById(productId);
   if (!product) throw new AppError("Product not found", 404);
   if (product.shopId !== shop.id) throw new AppError("Forbidden", 403);
@@ -128,6 +148,7 @@ export const deleteProductService = async (
   productId: string,
 ) => {
   const shop = await getSellerShop(ownerId);
+  ensureActiveShop(shop.status);
   const product = await findProductById(productId);
   if (!product) throw new AppError("Product not found", 404);
   if (product.shopId !== shop.id) throw new AppError("Forbidden", 403);
@@ -139,6 +160,7 @@ export const getInventoryService = async (
   productId: string,
 ) => {
   const shop = await getSellerShop(ownerId);
+  ensureActiveShop(shop.status);
   const product = await findProductById(productId);
   if (!product) throw new AppError("Product not found", 404);
   if (product.shopId !== shop.id) throw new AppError("Forbidden", 403);

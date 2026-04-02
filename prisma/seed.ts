@@ -81,7 +81,7 @@ async function main() {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "")}-${i}`,
-      parentId: i < 2 ? null : undefined,
+      parentId: null,
     };
   });
   await prisma.category.createMany({ data: categories });
@@ -112,9 +112,12 @@ async function main() {
   const inventory = products.map((p) => ({
     productId: p.id,
     stockQuantity: faker.number.int({ min: 0, max: 100 }),
-    reservedQuantity: 0,
   }));
   await prisma.inventory.createMany({ data: inventory });
+
+  const stockByProductId = new Map(
+    inventory.map((item) => [item.productId, item.stockQuantity]),
+  );
 
   // Carts and CartItems
   const carts = users.map((u) => ({
@@ -131,10 +134,13 @@ async function main() {
       Math.min(count, products.length),
     );
     return selected.map((product) => ({
+      quantity: faker.number.int({
+        min: 1,
+        max: Math.max(1, Math.min(5, stockByProductId.get(product.id) ?? 1)),
+      }),
       id: faker.string.uuid(),
       cartId: cart.id,
       productId: product.id,
-      quantity: faker.number.int({ min: 1, max: 5 }),
     }));
   });
   await prisma.cartItem.createMany({ data: cartItems });
@@ -178,7 +184,9 @@ async function main() {
   await prisma.orderItem.createMany({ data: orderItems });
 
   const payments = orders
-    .filter((order) => order.status !== "CANCELLED")
+    .filter((order) =>
+      ["CONFIRMED", "SHIPPED", "DELIVERED"].includes(order.status),
+    )
     .map((order) => ({
       id: faker.string.uuid(),
       orderId: order.id,
@@ -186,7 +194,7 @@ async function main() {
       status:
         order.status === "DELIVERED" || order.status === "SHIPPED"
           ? "COMPLETED"
-          : faker.helpers.arrayElement(["PENDING", "FAILED"]),
+          : "PENDING",
       transactionId: faker.string.uuid(),
       createdAt: faker.date.past(),
     }));

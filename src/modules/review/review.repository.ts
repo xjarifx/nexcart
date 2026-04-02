@@ -9,12 +9,21 @@ import { prisma } from "../../lib/prisma.js";
 import { OrderStatus } from "../../generated/prisma/enums.js";
 
 /** Returns all reviews for a product, newest first, with reviewer name included. */
-export const findReviewsByProductId = (productId: string) =>
+export const findReviewsByProductId = (
+  productId: string,
+  skip: number,
+  take: number,
+) =>
   prisma.review.findMany({
     where: { productId },
+    skip,
+    take,
     include: { user: { select: { id: true, name: true } } }, // only expose id and name, not email/password
     orderBy: { createdAt: "desc" },
   });
+
+export const countReviewsByProductId = (productId: string) =>
+  prisma.review.count({ where: { productId } });
 
 export const findReviewById = (id: string) =>
   prisma.review.findUnique({ where: { id } });

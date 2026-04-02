@@ -85,6 +85,7 @@ orderRouter.get("/", authenticate, getMyOrders);
  */
 orderRouter.get("/:id", authenticate, getMyOrderById);
 orderRouter.put("/:id/cancel", authenticate, cancelMyOrder);
+orderRouter.patch("/:id/cancel", authenticate, cancelMyOrder);
 
 // Seller order routes — mounted at /api/shops/mine/orders
 export const sellerOrderRouter = Router({ mergeParams: true });
@@ -142,6 +143,7 @@ sellerOrderRouter.get("/", authenticate, getShopOrders);
  *         description: Order not found
  */
 sellerOrderRouter.put("/:id", authenticate, updateShopOrderStatus);
+sellerOrderRouter.patch("/:id", authenticate, updateShopOrderStatus);
 
 // Admin order routes — mounted at /api/admin/orders
 export const adminOrderRouter = Router();
@@ -195,6 +197,12 @@ adminOrderRouter.get("/", authenticate, authorize(Role.ADMIN), getAllOrders);
  *         description: Order not found
  */
 adminOrderRouter.put(
+  "/:id",
+  authenticate,
+  authorize(Role.ADMIN),
+  adminUpdateOrderStatus,
+);
+adminOrderRouter.patch(
   "/:id",
   authenticate,
   authorize(Role.ADMIN),

@@ -142,7 +142,7 @@ Every `:id` path parameter flows directly into Prisma `findUnique({ where: { id 
 
 ---
 
-### 14. No cascade delete rules in schema — orphan row risk
+### 14. No cascade delete rules in schema — orphan row risk (COMPLETED)
 
 **Severity: High — data integrity**
 
@@ -176,7 +176,7 @@ The Prisma schema has no `onDelete` directives on any relation. The default is `
 
 ---
 
-### 17. No pagination on most list endpoints
+### 17. No pagination on most list endpoints (COMPLETED)
 
 **Severity: Medium — will become critical under load**
 
@@ -205,7 +205,7 @@ The Prisma schema has no `onDelete` directives on any relation. The default is `
 
 ---
 
-### 19. No average rating on products
+### 19. No average rating on products (COMPLETED)
 
 **Severity: Medium — performance and UX**
 
@@ -215,7 +215,7 @@ There is no `averageRating` field on `Product`. Any star rating display requires
 
 ---
 
-### 20. No DB indexes for search and filter fields
+### 20. No DB indexes for search and filter fields (COMPLETED)
 
 **Severity: Medium — performance**
 
@@ -231,7 +231,7 @@ Product search uses a case-insensitive `contains` (LIKE/ILIKE) scan on `name` wi
 
 ---
 
-### 21. `reservedQuantity` is dead code
+### 21. `reservedQuantity` is dead code (COMPLETED)
 
 **Severity: Medium — misleading**
 
@@ -301,7 +301,7 @@ There is no request ID attached to logs. When debugging a production issue acros
 
 ---
 
-### 28. Seed script creates unrealistic data relationships
+### 28. Seed script creates unrealistic data relationships (COMPLETED)
 
 **Severity: Medium — developer experience**
 
@@ -326,7 +326,7 @@ Prisma throws `PrismaClientKnownRequestError` with specific error codes (P2002 f
 
 ---
 
-### 30. `deleteUserById` has no cleanup — cascading deletion will fail
+### 30. `deleteUserById` has no cleanup — cascading deletion will fail (COMPLETED)
 
 **Severity: Medium — data integrity**
 
@@ -370,7 +370,7 @@ The CI pipeline runs lint and tests but does not run `tsc --noEmit` as a separat
 
 ---
 
-### 34. Test coverage is happy-path only (~40–50%)
+### 34. Test coverage is happy-path only (~40–50%) (COMPLETED)
 
 **Severity: Low — quality**
 
@@ -391,7 +391,7 @@ All 9 modules have tests but only for the success path. Untested scenarios that 
 
 ---
 
-### 35. No API versioning
+### 35. No API versioning (COMPLETED)
 
 **Severity: Low — maintainability**
 
@@ -441,7 +441,7 @@ The swagger-jsdoc `apis` glob `"./src/modules/**/*.route.ts"` works in developme
 
 ---
 
-### 40. No `updatedAt` on most models
+### 40. No `updatedAt` on most models (COMPLETED)
 
 **Severity: Low — auditing**
 
@@ -451,7 +451,7 @@ Only `Cart` has `@updatedAt`. `User`, `Order`, `Shop`, `Product`, `Address`, and
 
 ---
 
-### 41. No admin user management endpoints
+### 41. No admin user management endpoints (COMPLETED)
 
 **Severity: Low — missing feature**
 
@@ -461,7 +461,7 @@ There is no way for an admin to list users, search users, view a user's profile,
 
 ---
 
-### 42. No product image support
+### 42. No product image support (COMPLETED)
 
 **Severity: Low — missing feature**
 
@@ -481,7 +481,7 @@ In `app.ts`, `pinoHttp` is called on line 24 using `logger`, but `logger` is imp
 
 ---
 
-### 44. No `PATCH` method — all mutations use `PUT`
+### 44. No `PATCH` method — all mutations use `PUT` (COMPLETED)
 
 **Severity: Low — API design**
 
@@ -511,7 +511,7 @@ Expired `RefreshToken` records are only deleted when a user happens to call `/re
 
 ---
 
-### 47. Seller endpoints have no shop-status guard
+### 47. Seller endpoints have no shop-status guard (COMPLETED)
 
 **Severity: Low — business logic**
 

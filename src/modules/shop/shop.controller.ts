@@ -7,6 +7,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
+import { parsePaginationQuery } from "../../lib/paginate.js";
 import { createShopSchema, updateShopSchema } from "./shop.validation.js";
 import {
   createShopService,
@@ -18,39 +19,75 @@ import {
   suspendShopService,
 } from "./shop.service.js";
 
-export const createShop = async (req: Request, res: Response, next: NextFunction) => {
+export const createShop = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const body = createShopSchema.parse(req.body);
   const result = await createShopService(req.user!.id, body);
   respond(res, { status: 201, message: "Shop created", data: result.data });
 };
 
-export const getMyShop = async (req: Request, res: Response, next: NextFunction) => {
+export const getMyShop = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const result = await getMyShopService(req.user!.id);
   respond(res, { data: result.data });
 };
 
-export const updateMyShop = async (req: Request, res: Response, next: NextFunction) => {
+export const updateMyShop = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const body = updateShopSchema.parse(req.body);
   const result = await updateMyShopService(req.user!.id, body);
   respond(res, { message: "Shop updated", data: result.data });
 };
 
-export const getShopBySlug = async (req: Request, res: Response, next: NextFunction) => {
+export const getShopBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const result = await getShopBySlugService(req.params.slug as string);
   respond(res, { data: result.data });
 };
 
-export const getAllShops = async (req: Request, res: Response, next: NextFunction) => {
-  const result = await getAllShopsService(req.query.status as string | undefined);
-  respond(res, { data: result.data });
+export const getAllShops = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { page, limit } = parsePaginationQuery({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+  });
+  const result = await getAllShopsService(
+    page,
+    limit,
+    req.query.status as string | undefined,
+  );
+  respond(res, { data: result.data, meta: result.meta });
 };
 
-export const approveShop = async (req: Request, res: Response, next: NextFunction) => {
+export const approveShop = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const result = await approveShopService(req.params.id as string);
   respond(res, { message: "Shop approved", data: result.data });
 };
 
-export const suspendShop = async (req: Request, res: Response, next: NextFunction) => {
+export const suspendShop = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const result = await suspendShopService(req.params.id as string);
   respond(res, { message: "Shop suspended", data: result.data });
 };

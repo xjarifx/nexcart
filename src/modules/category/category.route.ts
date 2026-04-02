@@ -109,6 +109,12 @@ categoryRouter.post("/", authenticate, authorize(Role.ADMIN), createCategory);
  *         description: Category not found
  */
 categoryRouter.put("/:id", authenticate, authorize(Role.ADMIN), updateCategory);
+categoryRouter.patch(
+  "/:id",
+  authenticate,
+  authorize(Role.ADMIN),
+  updateCategory,
+);
 
 /**
  * @openapi

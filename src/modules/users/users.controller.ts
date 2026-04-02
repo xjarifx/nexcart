@@ -8,20 +8,25 @@
 
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
+import { parsePaginationQuery } from "../../lib/paginate.js";
 import {
   updateMeSchema,
   updatePasswordSchema,
   addressSchema,
+  adminUpdateRoleSchema,
 } from "./users.validation.js";
 import {
   getMeService,
   updateMeService,
   deleteMeService,
   updatePasswordService,
-  getAddressesService,
+  getAddressesPaginatedService,
   addAddressService,
   updateAddressService,
   deleteAddressService,
+  getAdminUsersService,
+  getAdminUserByIdService,
+  updateAdminUserRoleService,
 } from "./users.service.js";
 
 export const getMe = async (
@@ -67,8 +72,12 @@ export const getAddresses = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const result = await getAddressesService(req.user!.id);
-  respond(res, { data: result.data });
+  const { page, limit } = parsePaginationQuery({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+  });
+  const result = await getAddressesPaginatedService(req.user!.id, page, limit);
+  respond(res, { data: result.data, meta: result.meta });
 };
 
 export const addAddress = async (
@@ -102,4 +111,40 @@ export const deleteAddress = async (
 ) => {
   await deleteAddressService(req.user!.id, req.params.id as string);
   respond(res, { message: "Address deleted" });
+};
+
+export const getAdminUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { page, limit } = parsePaginationQuery({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+  });
+  const search = (req.query.search as string | undefined)?.trim() || undefined;
+  const result = await getAdminUsersService(page, limit, search);
+  respond(res, { data: result.data, meta: result.meta });
+};
+
+export const getAdminUserById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const result = await getAdminUserByIdService(req.params.id as string);
+  respond(res, { data: result.data });
+};
+
+export const updateAdminUserRole = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { role } = adminUpdateRoleSchema.parse(req.body);
+  const result = await updateAdminUserRoleService(
+    req.params.id as string,
+    role,
+  );
+  respond(res, { message: "User role updated", data: result.data });
 };

@@ -16,12 +16,16 @@
 import { AppError } from "../../types/errors.js";
 import { OrderStatus, ShopStatus } from "../../generated/prisma/enums.js";
 import { Prisma } from "../../generated/prisma/client.js";
+import { paginate, buildMeta } from "../../lib/paginate.js";
 import { findShopByOwnerId } from "../shop/shop.repository.js";
 import {
   findOrderById,
   findOrdersByUserId,
+  countOrdersByUserId,
   findOrdersByShopId,
+  countOrdersByShopId,
   findAllOrders,
+  countAllOrders,
   updateOrderStatus,
   findCartWithItems,
   findAddressByIdAndUserId,
@@ -72,9 +76,17 @@ export const checkoutService = async (userId: string, addressId: string) => {
   return { data: order };
 };
 
-export const getMyOrdersService = async (userId: string) => {
-  const orders = await findOrdersByUserId(userId);
-  return { data: orders };
+export const getMyOrdersService = async (
+  userId: string,
+  page: number,
+  limit: number,
+) => {
+  const { skip, take } = paginate(page, limit);
+  const [orders, total] = await Promise.all([
+    findOrdersByUserId(userId, skip, take),
+    countOrdersByUserId(userId),
+  ]);
+  return { data: orders, meta: buildMeta(total, page, limit) };
 };
 
 export const getMyOrderByIdService = async (
@@ -101,11 +113,26 @@ export const cancelMyOrderService = async (userId: string, orderId: string) => {
 
 // ─── Seller ───────────────────────────────────────────────────────────────────
 
-export const getShopOrdersService = async (ownerId: string) => {
+export const getShopOrdersService = async (
+  ownerId: string,
+  page: number,
+  limit: number,
+) => {
   const shop = await findShopByOwnerId(ownerId);
   if (!shop) throw new AppError("You don't have a shop", 404);
-  const orders = await findOrdersByShopId(shop.id);
-  return { data: orders };
+  if (shop.status !== ShopStatus.ACTIVE) {
+    throw new AppError(
+      "Only active shops can access seller order actions",
+      403,
+    );
+  }
+
+  const { skip, take } = paginate(page, limit);
+  const [orders, total] = await Promise.all([
+    findOrdersByShopId(shop.id, skip, take),
+    countOrdersByShopId(shop.id),
+  ]);
+  return { data: orders, meta: buildMeta(total, page, limit) };
 };
 
 /**
@@ -120,6 +147,12 @@ export const updateShopOrderStatusService = async (
 ) => {
   const shop = await findShopByOwnerId(ownerId);
   if (!shop) throw new AppError("You don't have a shop", 404);
+  if (shop.status !== ShopStatus.ACTIVE) {
+    throw new AppError(
+      "Only active shops can access seller order actions",
+      403,
+    );
+  }
 
   const order = await findOrderById(orderId);
   if (!order) throw new AppError("Order not found", 404);
@@ -148,9 +181,13 @@ export const updateShopOrderStatusService = async (
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
-export const getAllOrdersService = async () => {
-  const orders = await findAllOrders();
-  return { data: orders };
+export const getAllOrdersService = async (page: number, limit: number) => {
+  const { skip, take } = paginate(page, limit);
+  const [orders, total] = await Promise.all([
+    findAllOrders(skip, take),
+    countAllOrders(),
+  ]);
+  return { data: orders, meta: buildMeta(total, page, limit) };
 };
 
 /**

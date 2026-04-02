@@ -12,6 +12,7 @@
  */
 
 import { slugify } from "../../lib/slug.js";
+import { paginate, buildMeta } from "../../lib/paginate.js";
 import { AppError } from "../../types/errors.js";
 import { ShopStatus } from "../../generated/prisma/enums.js";
 import {
@@ -19,12 +20,16 @@ import {
   findShopBySlug,
   findShopById,
   findAllShops,
+  countShops,
   createShop,
   updateShopById,
 } from "./shop.repository.js";
 
 /** Creates a new shop for the authenticated user. One shop per user is enforced. */
-export const createShopService = async (ownerId: string, data: { name: string; description: string }) => {
+export const createShopService = async (
+  ownerId: string,
+  data: { name: string; description: string },
+) => {
   const existing = await findShopByOwnerId(ownerId);
   if (existing) throw new AppError("You already have a shop", 409);
 
@@ -46,7 +51,10 @@ export const getMyShopService = async (ownerId: string) => {
  * Updates the authenticated user's shop.
  * If the name changes, regenerates the slug and checks for conflicts.
  */
-export const updateMyShopService = async (ownerId: string, data: { name?: string; description?: string }) => {
+export const updateMyShopService = async (
+  ownerId: string,
+  data: { name?: string; description?: string },
+) => {
   const shop = await findShopByOwnerId(ownerId);
   if (!shop) throw new AppError("You don't have a shop yet", 404);
 
@@ -56,7 +64,10 @@ export const updateMyShopService = async (ownerId: string, data: { name?: string
     if (slugExists) throw new AppError("Shop name already taken", 409);
   }
 
-  const updated = await updateShopById(shop.id, { ...data, ...(slug && { slug }) });
+  const updated = await updateShopById(shop.id, {
+    ...data,
+    ...(slug && { slug }),
+  });
   return { data: updated };
 };
 
@@ -65,25 +76,40 @@ export const getShopBySlugService = async (slug: string) => {
   const shop = await findShopBySlug(slug);
   if (!shop) throw new AppError("Shop not found", 404);
   // Hide non-active shops from public view (don't leak their existence)
-  if (shop.status !== ShopStatus.ACTIVE) throw new AppError("Shop not found", 404);
+  if (shop.status !== ShopStatus.ACTIVE)
+    throw new AppError("Shop not found", 404);
   return { data: shop };
 };
 
 /** Admin: list all shops, optionally filtered by status. */
-export const getAllShopsService = async (status?: string) => {
+export const getAllShopsService = async (
+  page: number,
+  limit: number,
+  status?: string,
+) => {
   const validStatuses = Object.values(ShopStatus);
   if (status && !validStatuses.includes(status as ShopStatus)) {
-    throw new AppError(`Invalid status. Must be one of: ${validStatuses.join(", ")}`, 400);
+    throw new AppError(
+      `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+      400,
+    );
   }
-  const shops = await findAllShops(status as ShopStatus | undefined);
-  return { data: shops };
+
+  const { skip, take } = paginate(page, limit);
+  const parsedStatus = status as ShopStatus | undefined;
+  const [shops, total] = await Promise.all([
+    findAllShops(skip, take, parsedStatus),
+    countShops(parsedStatus),
+  ]);
+  return { data: shops, meta: buildMeta(total, page, limit) };
 };
 
 /** Admin: approve a PENDING or SUSPENDED shop → ACTIVE. */
 export const approveShopService = async (id: string) => {
   const shop = await findShopById(id);
   if (!shop) throw new AppError("Shop not found", 404);
-  if (shop.status === ShopStatus.ACTIVE) throw new AppError("Shop is already active", 400);
+  if (shop.status === ShopStatus.ACTIVE)
+    throw new AppError("Shop is already active", 400);
   const updated = await updateShopById(id, { status: ShopStatus.ACTIVE });
   return { data: updated };
 };
@@ -92,7 +118,8 @@ export const approveShopService = async (id: string) => {
 export const suspendShopService = async (id: string) => {
   const shop = await findShopById(id);
   if (!shop) throw new AppError("Shop not found", 404);
-  if (shop.status === ShopStatus.SUSPENDED) throw new AppError("Shop is already suspended", 400);
+  if (shop.status === ShopStatus.SUSPENDED)
+    throw new AppError("Shop is already suspended", 400);
   const updated = await updateShopById(id, { status: ShopStatus.SUSPENDED });
   return { data: updated };
 };

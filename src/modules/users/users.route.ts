@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/auth.middleware.js";
+import { authorize } from "../../middleware/authorize.middleware.js";
+import { Role } from "../../generated/prisma/enums.js";
 import {
   getMe,
   updateMe,
@@ -9,6 +11,9 @@ import {
   addAddress,
   updateAddress,
   deleteAddress,
+  getAdminUsers,
+  getAdminUserById,
+  updateAdminUserRole,
 } from "./users.controller.js";
 
 const userRouter = Router();
@@ -55,6 +60,7 @@ userRouter.get("/me", authenticate, getMe);
  *         description: Unauthorized
  */
 userRouter.put("/me", authenticate, updateMe);
+userRouter.patch("/me", authenticate, updateMe);
 
 /**
  * @openapi
@@ -100,6 +106,7 @@ userRouter.delete("/me", authenticate, deleteMe);
  *         description: Current password incorrect
  */
 userRouter.put("/me/password", authenticate, updatePassword);
+userRouter.patch("/me/password", authenticate, updatePassword);
 
 /**
  * @openapi
@@ -172,6 +179,7 @@ userRouter.post("/me/addresses", authenticate, addAddress);
  *         description: Address not found
  */
 userRouter.put("/me/addresses/:id", authenticate, updateAddress);
+userRouter.patch("/me/addresses/:id", authenticate, updateAddress);
 
 /**
  * @openapi
@@ -196,3 +204,25 @@ userRouter.put("/me/addresses/:id", authenticate, updateAddress);
 userRouter.delete("/me/addresses/:id", authenticate, deleteAddress);
 
 export default userRouter;
+
+export const adminUserRouter = Router();
+
+adminUserRouter.get("/", authenticate, authorize(Role.ADMIN), getAdminUsers);
+adminUserRouter.get(
+  "/:id",
+  authenticate,
+  authorize(Role.ADMIN),
+  getAdminUserById,
+);
+adminUserRouter.put(
+  "/:id/role",
+  authenticate,
+  authorize(Role.ADMIN),
+  updateAdminUserRole,
+);
+adminUserRouter.patch(
+  "/:id/role",
+  authenticate,
+  authorize(Role.ADMIN),
+  updateAdminUserRole,
+);

@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import { Role } from "../../generated/prisma/enums.js";
 
 /** PUT /api/users/me — at least one field required */
 export const updateMeSchema = z
@@ -31,4 +32,8 @@ export const addressSchema = z.object({
   postalCode: z.string().min(1),
   country: z.string().min(1),
   isDefault: z.boolean().optional().default(false),
+});
+
+export const adminUpdateRoleSchema = z.object({
+  role: z.nativeEnum(Role),
 });

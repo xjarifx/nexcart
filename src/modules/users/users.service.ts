@@ -6,12 +6,19 @@
  */
 
 import bcrypt from "bcryptjs";
+import { Role } from "../../generated/prisma/enums.js";
+import { paginate, buildMeta } from "../../lib/paginate.js";
 import { AppError } from "../../types/errors.js";
 import {
   findUserById,
   updateUserById,
   deleteUserById,
+  countUserDependencies,
+  findUsers,
+  countUsers,
+  updateUserRoleById,
   findAddressesByUserId,
+  countAddressesByUserId,
   findAddressById,
   createAddress,
   updateAddressById,
@@ -47,6 +54,16 @@ export const getMeService = async (userId: string) => {
 export const deleteMeService = async (userId: string) => {
   const existing = await findUserById(userId);
   if (!existing) throw new AppError("User not found", 404);
+
+  const deps = await countUserDependencies(userId);
+  const hasDependencies = Object.values(deps).some((value) => value > 0);
+  if (hasDependencies) {
+    throw new AppError(
+      "Account cannot be deleted because related records exist. Contact support for account deactivation.",
+      409,
+    );
+  }
+
   await deleteUserById(userId);
 };
 
@@ -69,8 +86,51 @@ export const updatePasswordService = async (
 // ─── Addresses ───────────────────────────────────────────────────────────────
 
 export const getAddressesService = async (userId: string) => {
-  const addresses = await findAddressesByUserId(userId);
-  return { data: addresses };
+  return getAddressesPaginatedService(userId, 1, 20);
+};
+
+export const getAddressesPaginatedService = async (
+  userId: string,
+  page: number,
+  limit: number,
+) => {
+  const { skip, take } = paginate(page, limit);
+  const [addresses, total] = await Promise.all([
+    findAddressesByUserId(userId, skip, take),
+    countAddressesByUserId(userId),
+  ]);
+  return { data: addresses, meta: buildMeta(total, page, limit) };
+};
+
+export const getAdminUsersService = async (
+  page: number,
+  limit: number,
+  search?: string,
+) => {
+  const { skip, take } = paginate(page, limit);
+  const [users, total] = await Promise.all([
+    findUsers(skip, take, search),
+    countUsers(search),
+  ]);
+  const safeUsers = users.map(
+    ({ password: _password, ...safeUser }) => safeUser,
+  );
+  return { data: safeUsers, meta: buildMeta(total, page, limit) };
+};
+
+export const getAdminUserByIdService = async (id: string) => {
+  const user = await findUserById(id);
+  if (!user) throw new AppError("User not found", 404);
+  const { password: _password, ...safeUser } = user;
+  return { data: safeUser };
+};
+
+export const updateAdminUserRoleService = async (id: string, role: Role) => {
+  const user = await findUserById(id);
+  if (!user) throw new AppError("User not found", 404);
+  const updated = await updateUserRoleById(id, role);
+  const { password: _password, ...safeUser } = updated;
+  return { data: safeUser };
 };
 
 /**

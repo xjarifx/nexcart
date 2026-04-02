@@ -13,6 +13,7 @@ export const createProductSchema = z.object({
   description: z.string().min(10),
   price: z.number().positive(),
   brand: z.string().min(1),
+  images: z.array(z.string().url()).max(10).optional(),
   stockQuantity: z.number().int().min(0), // initial stock set at creation
 });
 

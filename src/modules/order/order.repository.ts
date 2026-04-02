@@ -23,26 +23,48 @@ export const findOrderById = (id: string) =>
   prisma.order.findUnique({ where: { id }, include: orderInclude });
 
 /** Returns all orders for a user, newest first. */
-export const findOrdersByUserId = (userId: string) =>
+export const findOrdersByUserId = (
+  userId: string,
+  skip: number,
+  take: number,
+) =>
   prisma.order.findMany({
     where: { userId },
+    skip,
+    take,
     include: orderInclude,
     orderBy: { createdAt: "desc" },
   });
+
+export const countOrdersByUserId = (userId: string) =>
+  prisma.order.count({ where: { userId } });
 
 /** Returns all orders that contain at least one item from the given shop. */
-export const findOrdersByShopId = (shopId: string) =>
+export const findOrdersByShopId = (
+  shopId: string,
+  skip: number,
+  take: number,
+) =>
   prisma.order.findMany({
     where: { items: { some: { shopId } } },
+    skip,
+    take,
     include: orderInclude,
     orderBy: { createdAt: "desc" },
   });
 
-export const findAllOrders = () =>
+export const countOrdersByShopId = (shopId: string) =>
+  prisma.order.count({ where: { items: { some: { shopId } } } });
+
+export const findAllOrders = (skip: number, take: number) =>
   prisma.order.findMany({
+    skip,
+    take,
     include: orderInclude,
     orderBy: { createdAt: "desc" },
   });
+
+export const countAllOrders = () => prisma.order.count();
 
 export const updateOrderStatus = async (id: string, status: OrderStatus) => {
   if (status !== OrderStatus.CANCELLED) {

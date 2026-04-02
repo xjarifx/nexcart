@@ -10,11 +10,21 @@ import { ShopStatus } from "../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
 
 /** All products belonging to a shop (seller view — includes inactive). */
-export const findProductsByShopId = (shopId: string) =>
+export const findProductsByShopId = (
+  shopId: string,
+  skip: number,
+  take: number,
+) =>
   prisma.product.findMany({
     where: { shopId },
+    skip,
+    take,
+    orderBy: { createdAt: "desc" },
     include: { inventory: true, category: true },
   });
+
+export const countProductsByShopId = (shopId: string) =>
+  prisma.product.count({ where: { shopId } });
 
 /** Single product by ID with full relations (used by seller and cart). */
 export const findProductById = (id: string) =>
@@ -91,11 +101,12 @@ export const createProduct = (data: {
   description: string;
   price: number;
   brand: string;
+  images?: string[];
 }) =>
   prisma.product.create({
     data: {
       ...data,
-      inventory: { create: { stockQuantity: 0, reservedQuantity: 0 } },
+      inventory: { create: { stockQuantity: 0 } },
     },
     include: { inventory: true },
   });
@@ -109,6 +120,7 @@ export const updateProductById = (
     description?: string;
     price?: number;
     brand?: string;
+    images?: string[];
   },
 ) =>
   prisma.product.update({ where: { id }, data, include: { inventory: true } });

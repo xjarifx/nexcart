@@ -148,6 +148,16 @@ describe("POST /api/products/:productId/reviews", () => {
     expect(res.status).toBe(400);
     expectError(res.body);
   });
+
+  it("rejects review from a user who has not received the product", async () => {
+    const res = await request(app)
+      .post(`/api/products/${productId}/reviews`)
+      .set("Authorization", `Bearer ${otherToken}`)
+      .send({ rating: 4, comment: "I did not buy this" });
+
+    expect(res.status).toBe(403);
+    expectError(res.body);
+  });
 });
 
 describe("DELETE /api/reviews/:id", () => {

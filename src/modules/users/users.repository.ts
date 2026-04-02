@@ -6,6 +6,7 @@
  */
 
 import { prisma } from "../../lib/prisma.js";
+import { Role } from "../../generated/prisma/enums.js";
 
 // ─── Profile ─────────────────────────────────────────────────────────────────
 
@@ -21,10 +22,64 @@ export const updateUserById = (
 export const deleteUserById = (id: string) =>
   prisma.user.delete({ where: { id } });
 
+export const countUserDependencies = async (userId: string) => {
+  const [addresses, cartItems, orders, reviews, shop] = await Promise.all([
+    prisma.address.count({ where: { userId } }),
+    prisma.cartItem.count({ where: { cart: { userId } } }),
+    prisma.order.count({ where: { userId } }),
+    prisma.review.count({ where: { userId } }),
+    prisma.shop.count({ where: { ownerId: userId } }),
+  ]);
+
+  return { addresses, cartItems, orders, reviews, shop };
+};
+
+export const findUsers = (skip: number, take: number, search?: string) =>
+  prisma.user.findMany({
+    where: search
+      ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        }
+      : undefined,
+    skip,
+    take,
+    orderBy: { createdAt: "desc" },
+  });
+
+export const countUsers = (search?: string) =>
+  prisma.user.count({
+    where: search
+      ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        }
+      : undefined,
+  });
+
+export const updateUserRoleById = (id: string, role: Role) =>
+  prisma.user.update({ where: { id }, data: { role } });
+
 // ─── Addresses ───────────────────────────────────────────────────────────────
 
-export const findAddressesByUserId = (userId: string) =>
-  prisma.address.findMany({ where: { userId } });
+export const findAddressesByUserId = (
+  userId: string,
+  skip: number,
+  take: number,
+) =>
+  prisma.address.findMany({
+    where: { userId },
+    skip,
+    take,
+    orderBy: { id: "desc" },
+  });
+
+export const countAddressesByUserId = (userId: string) =>
+  prisma.address.count({ where: { userId } });
 
 /** Finds an address only if it belongs to the given user — prevents cross-user access. */
 export const findAddressById = (id: string, userId: string) =>

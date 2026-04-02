@@ -7,6 +7,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
+import { parsePaginationQuery } from "../../lib/paginate.js";
 import {
   createCategorySchema,
   updateCategorySchema,
@@ -20,12 +21,16 @@ import {
 } from "./category.service.js";
 
 export const getAllCategories = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const result = await getAllCategoriesService();
-  respond(res, { data: result.data });
+  const { page, limit } = parsePaginationQuery({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+  });
+  const result = await getAllCategoriesService(page, limit);
+  respond(res, { data: result.data, meta: result.meta });
 };
 
 export const getCategoryBySlug = async (

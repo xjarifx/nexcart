@@ -25,7 +25,7 @@ import pinoHttp from "pino-http";
 import swaggerUi from "swagger-ui-express";
 
 import authRouter from "./modules/auth/auth.route.js";
-import userRouter from "./modules/users/users.route.js";
+import userRouter, { adminUserRouter } from "./modules/users/users.route.js";
 import categoryRouter from "./modules/category/category.route.js";
 import shopRouter, { adminShopRouter } from "./modules/shop/shop.route.js";
 import {
@@ -141,7 +141,9 @@ const apiLimiter = rateLimit({
 
 // Auth limiter must be registered before the auth router
 app.use("/api/auth", authLimiter);
+app.use("/api/v1/auth", authLimiter);
 app.use("/api", apiLimiter);
+app.use("/api/v1", apiLimiter);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
@@ -170,20 +172,25 @@ app.get("/health", async (_req, res) => {
 
 // NOTE: /api/shops/mine/* must be registered before /api/shops/:slug
 // to prevent Express from treating "mine" as a slug parameter.
-app.use("/api/auth", authRouter);
-app.use("/api/users", userRouter);
-app.use("/api/categories", categoryRouter);
-app.use("/api/shops/mine/products", sellerProductRouter);
-app.use("/api/shops/mine/orders", sellerOrderRouter);
-app.use("/api/shops", shopRouter);
-app.use("/api/products/:productId/reviews", reviewRouter);
-app.use("/api/products", productRouter);
-app.use("/api/reviews", reviewDeleteRouter);
-app.use("/api/cart", cartRouter);
-app.use("/api/orders", orderRouter);
-app.use("/api/payments", paymentRouter);
-app.use("/api/admin/shops", adminShopRouter);
-app.use("/api/admin/orders", adminOrderRouter);
+const apiRouter = express.Router();
+apiRouter.use("/auth", authRouter);
+apiRouter.use("/users", userRouter);
+apiRouter.use("/categories", categoryRouter);
+apiRouter.use("/shops/mine/products", sellerProductRouter);
+apiRouter.use("/shops/mine/orders", sellerOrderRouter);
+apiRouter.use("/shops", shopRouter);
+apiRouter.use("/products/:productId/reviews", reviewRouter);
+apiRouter.use("/products", productRouter);
+apiRouter.use("/reviews", reviewDeleteRouter);
+apiRouter.use("/cart", cartRouter);
+apiRouter.use("/orders", orderRouter);
+apiRouter.use("/payments", paymentRouter);
+apiRouter.use("/admin/users", adminUserRouter);
+apiRouter.use("/admin/shops", adminShopRouter);
+apiRouter.use("/admin/orders", adminOrderRouter);
+
+app.use("/api", apiRouter);
+app.use("/api/v1", apiRouter);
 
 // ─── Docs ─────────────────────────────────────────────────────────────────────
 

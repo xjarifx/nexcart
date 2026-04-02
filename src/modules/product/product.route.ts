@@ -195,6 +195,7 @@ sellerProductRouter.post("/", authenticate, createProduct);
  *         description: Product not found
  */
 sellerProductRouter.put("/:id", authenticate, updateProduct);
+sellerProductRouter.patch("/:id", authenticate, updateProduct);
 
 /**
  * @openapi
@@ -281,3 +282,4 @@ sellerProductRouter.get("/:id/inventory", authenticate, getInventory);
  *         description: Product not found
  */
 sellerProductRouter.put("/:id/inventory", authenticate, updateInventory);
+sellerProductRouter.patch("/:id/inventory", authenticate, updateInventory);

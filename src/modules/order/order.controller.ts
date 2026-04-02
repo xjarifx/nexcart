@@ -8,6 +8,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { respond } from "../../lib/response.js";
+import { parsePaginationQuery } from "../../lib/paginate.js";
 import { checkoutSchema, updateOrderStatusSchema } from "./order.validation.js";
 import {
   checkoutService,
@@ -41,8 +42,12 @@ export const getMyOrders = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const result = await getMyOrdersService(req.user!.id);
-  respond(res, { data: result.data });
+  const { page, limit } = parsePaginationQuery({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+  });
+  const result = await getMyOrdersService(req.user!.id, page, limit);
+  respond(res, { data: result.data, meta: result.meta });
 };
 
 export const getMyOrderById = async (
@@ -76,8 +81,12 @@ export const getShopOrders = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const result = await getShopOrdersService(req.user!.id);
-  respond(res, { data: result.data });
+  const { page, limit } = parsePaginationQuery({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+  });
+  const result = await getShopOrdersService(req.user!.id, page, limit);
+  respond(res, { data: result.data, meta: result.meta });
 };
 
 export const updateShopOrderStatus = async (
@@ -101,8 +110,12 @@ export const getAllOrders = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const result = await getAllOrdersService();
-  respond(res, { data: result.data });
+  const { page, limit } = parsePaginationQuery({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+  });
+  const result = await getAllOrdersService(page, limit);
+  respond(res, { data: result.data, meta: result.meta });
 };
 
 export const adminUpdateOrderStatus = async (

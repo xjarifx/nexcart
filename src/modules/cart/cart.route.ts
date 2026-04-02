@@ -1,6 +1,12 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/auth.middleware.js";
-import { getCart, addCartItem, updateCartItem, deleteCartItem, clearCart } from "./cart.controller.js";
+import {
+  getCart,
+  addCartItem,
+  updateCartItem,
+  deleteCartItem,
+  clearCart,
+} from "./cart.controller.js";
 
 const cartRouter = Router();
 
@@ -87,6 +93,7 @@ cartRouter.post("/items", authenticate, addCartItem);
  *         description: Cart item not found
  */
 cartRouter.put("/items/:id", authenticate, updateCartItem);
+cartRouter.patch("/items/:id", authenticate, updateCartItem);
 
 /**
  * @openapi

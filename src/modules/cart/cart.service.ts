@@ -32,17 +32,21 @@ export const getCartService = async (userId: string) => {
  * Validates:
  *  - Product exists and is active
  *  - Shop is active
- *  - Available stock (stockQuantity - reservedQuantity) covers the requested quantity
+ *  - Available stock (stockQuantity) covers the requested quantity
  */
-export const addCartItemService = async (userId: string, productId: string, quantity: number) => {
+export const addCartItemService = async (
+  userId: string,
+  productId: string,
+  quantity: number,
+) => {
   const product = await findProductById(productId);
   if (!product) throw new AppError("Product not found", 404);
   if (!product.isActive) throw new AppError("Product is not available", 400);
-  if (product.shop.status !== "ACTIVE") throw new AppError("Product is not available", 400);
+  if (product.shop.status !== "ACTIVE")
+    throw new AppError("Product is not available", 400);
 
   const stock = product.inventory?.stockQuantity ?? 0;
-  const reserved = product.inventory?.reservedQuantity ?? 0;
-  if (stock - reserved < quantity) throw new AppError("Insufficient stock", 400);
+  if (stock < quantity) throw new AppError("Insufficient stock", 400);
 
   const cart = await upsertCart(userId); // create cart if it doesn't exist
   const existing = await findCartItemByProductId(cart.id, productId);
@@ -50,7 +54,7 @@ export const addCartItemService = async (userId: string, productId: string, quan
   if (existing) {
     // Item already in cart — add to existing quantity and re-validate stock
     const newQty = existing.quantity + quantity;
-    if (stock - reserved < newQty) throw new AppError("Insufficient stock", 400);
+    if (stock < newQty) throw new AppError("Insufficient stock", 400);
     await updateCartItemById(existing.id, newQty);
   } else {
     await createCartItem(cart.id, productId, quantity);
@@ -64,14 +68,18 @@ export const addCartItemService = async (userId: string, productId: string, quan
  * Replaces the quantity of an existing cart item.
  * Verifies the item belongs to the requesting user and that stock covers the new quantity.
  */
-export const updateCartItemService = async (userId: string, itemId: string, quantity: number) => {
+export const updateCartItemService = async (
+  userId: string,
+  itemId: string,
+  quantity: number,
+) => {
   const item = await findCartItemById(itemId);
   if (!item) throw new AppError("Cart item not found", 404);
   if (item.cart.userId !== userId) throw new AppError("Forbidden", 403);
 
   const product = await findProductById(item.productId);
   if (product) {
-    const available = (product.inventory?.stockQuantity ?? 0) - (product.inventory?.reservedQuantity ?? 0);
+    const available = product.inventory?.stockQuantity ?? 0;
     if (available < quantity) throw new AppError("Insufficient stock", 400);
   }
 

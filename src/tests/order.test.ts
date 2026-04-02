@@ -14,6 +14,7 @@ let buyerToken: string;
 let sellerToken: string;
 let adminToken: string;
 let addressId: string;
+let foreignAddressId: string;
 let orderId: string;
 let productId: string;
 
@@ -68,6 +69,8 @@ beforeAll(async () => {
   const buyer = await registerAndLogin({ email: "buyer@example.com" });
   buyerToken = buyer.token;
 
+  const foreignUser = await registerAndLogin({ email: "foreign@example.com" });
+
   // address
   const addrRes = await request(app)
     .post("/api/users/me/addresses")
@@ -81,6 +84,19 @@ beforeAll(async () => {
       isDefault: true,
     });
   addressId = addrRes.body.data.id;
+
+  const foreignAddressRes = await request(app)
+    .post("/api/users/me/addresses")
+    .set("Authorization", `Bearer ${foreignUser.token}`)
+    .send({
+      addressLine1: "999 Foreign St",
+      city: "Cairo",
+      state: "Cairo",
+      postalCode: "11511",
+      country: "Egypt",
+      isDefault: true,
+    });
+  foreignAddressId = foreignAddressRes.body.data.id;
 
   // add to cart
   await request(app)
@@ -125,6 +141,21 @@ describe("POST /api/orders (checkout)", () => {
       .post("/api/orders")
       .set("Authorization", `Bearer ${buyerToken}`)
       .send({ addressId: "00000000-0000-0000-0000-000000000000" });
+    expect(res.status).toBe(404);
+    expectError(res.body);
+  });
+
+  it("rejects checkout with another user's address", async () => {
+    await request(app)
+      .post("/api/cart/items")
+      .set("Authorization", `Bearer ${buyerToken}`)
+      .send({ productId, quantity: 1 });
+
+    const res = await request(app)
+      .post("/api/orders")
+      .set("Authorization", `Bearer ${buyerToken}`)
+      .send({ addressId: foreignAddressId });
+
     expect(res.status).toBe(404);
     expectError(res.body);
   });
@@ -322,6 +353,29 @@ describe("Admin order management", () => {
   it("rejects cancelling an already cancelled order", async () => {
     const res = await request(app)
       .put(`/api/admin/orders/${orderId}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ status: "CANCELLED" });
+
+    expect(res.status).toBe(400);
+    expectError(res.body);
+  });
+
+  it("blocks cancellation of delivered orders", async () => {
+    const buyer = await prisma.user.findUnique({
+      where: { email: "buyer@example.com" },
+    });
+
+    const deliveredOrder = await prisma.order.create({
+      data: {
+        userId: buyer!.id,
+        addressId,
+        status: "DELIVERED",
+        totalAmount: 10,
+      },
+    });
+
+    const res = await request(app)
+      .put(`/api/admin/orders/${deliveredOrder.id}`)
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ status: "CANCELLED" });
 

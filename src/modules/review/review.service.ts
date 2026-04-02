@@ -6,28 +6,57 @@
  * Constraints enforced here:
  *  - Product must exist before a review can be created or listed
  *  - One review per user per product (checked before insert; also enforced by DB unique constraint)
+ *  - Product rating aggregates are updated after create/delete
  *  - Only the review author can delete their own review
- *
- * NOTE: There is currently no check that the reviewer has purchased the product.
- * See AUDIT.md for this known gap.
  */
 
 import { AppError } from "../../types/errors.js";
+import { paginate, buildMeta } from "../../lib/paginate.js";
+import { prisma } from "../../lib/prisma.js";
+import { Prisma } from "../../generated/prisma/client.js";
 import { findProductById } from "../product/product.repository.js";
 import {
   findReviewsByProductId,
+  countReviewsByProductId,
   findReviewById,
   findReviewByUserAndProduct,
   hasDeliveredOrderForProduct,
-  createReview,
-  deleteReviewById,
 } from "./review.repository.js";
 
-export const getReviewsService = async (productId: string) => {
+const refreshProductRatingStats = async (
+  tx: Prisma.TransactionClient,
+  productId: string,
+) => {
+  const [aggregate] = await Promise.all([
+    tx.review.aggregate({
+      where: { productId },
+      _avg: { rating: true },
+      _count: { _all: true },
+    }),
+  ]);
+
+  await tx.product.update({
+    where: { id: productId },
+    data: {
+      averageRating: aggregate._avg.rating ?? 0,
+      reviewCount: aggregate._count._all,
+    },
+  });
+};
+
+export const getReviewsService = async (
+  productId: string,
+  page: number,
+  limit: number,
+) => {
   const product = await findProductById(productId);
   if (!product) throw new AppError("Product not found", 404);
-  const reviews = await findReviewsByProductId(productId);
-  return { data: reviews };
+  const { skip, take } = paginate(page, limit);
+  const [reviews, total] = await Promise.all([
+    findReviewsByProductId(productId, skip, take),
+    countReviewsByProductId(productId),
+  ]);
+  return { data: reviews, meta: buildMeta(total, page, limit) };
 };
 
 export const createReviewService = async (
@@ -48,7 +77,13 @@ export const createReviewService = async (
     throw new AppError("You can only review products you have received", 403);
   }
 
-  const review = await createReview({ userId, productId, ...data });
+  const review = await prisma.$transaction(async (tx) => {
+    const created = await tx.review.create({
+      data: { userId, productId, ...data },
+    });
+    await refreshProductRatingStats(tx, productId);
+    return created;
+  });
   return { data: review };
 };
 
@@ -57,5 +92,8 @@ export const deleteReviewService = async (userId: string, reviewId: string) => {
   const review = await findReviewById(reviewId);
   if (!review) throw new AppError("Review not found", 404);
   if (review.userId !== userId) throw new AppError("Forbidden", 403);
-  await deleteReviewById(reviewId);
+  await prisma.$transaction(async (tx) => {
+    await tx.review.delete({ where: { id: reviewId } });
+    await refreshProductRatingStats(tx, review.productId);
+  });
 };

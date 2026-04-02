@@ -38,3 +38,23 @@ export const buildMeta = (total: number, page = 1, limit = 20) => {
     totalPages: Math.ceil(total / safeLimit),
   };
 };
+
+/**
+ * Parses `page` and `limit` from request query values.
+ * Accepts string/number/undefined and returns safe numeric values.
+ */
+export const parsePaginationQuery = (query: {
+  page?: string | number;
+  limit?: string | number;
+}) => {
+  const parsedPage = Number(query.page);
+  const parsedLimit = Number(query.limit);
+
+  const page = Number.isFinite(parsedPage) ? parsedPage : 1;
+  const limit = Number.isFinite(parsedLimit) ? parsedLimit : 20;
+
+  return {
+    page: Math.max(1, Math.trunc(page)),
+    limit: Math.min(100, Math.max(1, Math.trunc(limit))),
+  };
+};
