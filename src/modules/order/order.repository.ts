@@ -8,6 +8,7 @@
  */
 
 import { OrderStatus } from "../../generated/prisma/enums.js";
+import { AppError } from "../../types/errors.js";
 import { prisma } from "../../lib/prisma.js";
 
 /** Shared include shape for order queries — includes items, address, and payment. */
@@ -22,7 +23,11 @@ export const findOrderById = (id: string) =>
 
 /** Returns all orders for a user, newest first. */
 export const findOrdersByUserId = (userId: string) =>
-  prisma.order.findMany({ where: { userId }, include: orderInclude, orderBy: { createdAt: "desc" } });
+  prisma.order.findMany({
+    where: { userId },
+    include: orderInclude,
+    orderBy: { createdAt: "desc" },
+  });
 
 /** Returns all orders that contain at least one item from the given shop. */
 export const findOrdersByShopId = (shopId: string) =>
@@ -33,10 +38,17 @@ export const findOrdersByShopId = (shopId: string) =>
   });
 
 export const findAllOrders = () =>
-  prisma.order.findMany({ include: orderInclude, orderBy: { createdAt: "desc" } });
+  prisma.order.findMany({
+    include: orderInclude,
+    orderBy: { createdAt: "desc" },
+  });
 
 export const updateOrderStatus = (id: string, status: OrderStatus) =>
-  prisma.order.update({ where: { id }, data: { status }, include: orderInclude });
+  prisma.order.update({
+    where: { id },
+    data: { status },
+    include: orderInclude,
+  });
 
 /** Fetches the user's cart with full product and inventory data needed for checkout validation. */
 export const findCartWithItems = (userId: string) =>
@@ -57,12 +69,9 @@ export const findAddressByIdAndUserId = (id: string, userId: string) =>
 
 /**
  * Atomic checkout transaction — all three steps succeed or all roll back:
- *  1. Create the order with all its items
- *  2. Decrement inventory for each item
+ *  1. Decrement inventory for each item with a conditional update
+ *  2. Create the order with all its items
  *  3. Clear the user's cart
- *
- * NOTE: This does not use SELECT FOR UPDATE, so concurrent checkouts can
- * still oversell stock. See AUDIT.md for the known race condition.
  */
 export const createOrderTransaction = async (data: {
   userId: string;
@@ -71,14 +80,25 @@ export const createOrderTransaction = async (data: {
   items: Array<{
     productId: string;
     shopId: string;
+    productName: string;
     quantity: number;
     priceAtPurchase: number;
   }>;
   cartId: string;
-  inventoryUpdates: Array<{ productId: string; stockQuantity: number }>;
 }) => {
   return prisma.$transaction(async (tx) => {
-    // Step 1: Create the order and its line items
+    // Step 1: Decrement stock only if enough inventory is still available.
+    for (const item of data.items) {
+      const rowsAffected = await tx.$executeRawUnsafe(
+        `UPDATE "Inventory" SET "stockQuantity" = "stockQuantity" - ${item.quantity} WHERE "productId" = '${item.productId}' AND "stockQuantity" >= ${item.quantity}`,
+      );
+
+      if (rowsAffected !== 1) {
+        throw new AppError(`Insufficient stock for "${item.productName}"`, 409);
+      }
+    }
+
+    // Step 2: Create the order and its line items
     const order = await tx.order.create({
       data: {
         userId: data.userId,
@@ -93,16 +113,11 @@ export const createOrderTransaction = async (data: {
           })),
         },
       },
-      include: { items: { include: { product: true, shop: true } }, address: true },
+      include: {
+        items: { include: { product: true, shop: true } },
+        address: true,
+      },
     });
-
-    // Step 2: Decrement stock for each purchased product
-    for (const update of data.inventoryUpdates) {
-      await tx.inventory.update({
-        where: { productId: update.productId },
-        data: { stockQuantity: update.stockQuantity },
-      });
-    }
 
     // Step 3: Clear the cart so it's empty for the next session
     await tx.cartItem.deleteMany({ where: { cartId: data.cartId } });

@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { request, app, prisma, cleanDb, registerAndLogin, makeAdmin, expectSuccess, expectError } from "./helpers.js";
+import {
+  request,
+  app,
+  prisma,
+  cleanDb,
+  registerAndLogin,
+  makeAdmin,
+  expectSuccess,
+  expectError,
+} from "./helpers.js";
 
 let buyerToken: string;
 let sellerToken: string;
@@ -15,7 +24,8 @@ beforeAll(async () => {
   await registerAndLogin({ email: "admin@example.com" });
   await makeAdmin("admin@example.com");
   const adminLogin = await request(app).post("/api/auth/login").send({
-    email: "admin@example.com", password: "password123",
+    email: "admin@example.com",
+    password: "password123",
   });
   adminToken = adminLogin.body.data.accessToken;
 
@@ -32,7 +42,10 @@ beforeAll(async () => {
   const shopRes = await request(app)
     .post("/api/shops")
     .set("Authorization", `Bearer ${sellerToken}`)
-    .send({ name: "Order Test Shop", description: "Shop for order testing purposes" });
+    .send({
+      name: "Order Test Shop",
+      description: "Shop for order testing purposes",
+    });
   await request(app)
     .put(`/api/admin/shops/${shopRes.body.data.id}/approve`)
     .set("Authorization", `Bearer ${adminToken}`);
@@ -75,7 +88,10 @@ beforeAll(async () => {
     .set("Authorization", `Bearer ${buyerToken}`)
     .send({ productId, quantity: 2 });
 });
-afterAll(async () => { await cleanDb(); await prisma.$disconnect(); });
+afterAll(async () => {
+  await cleanDb();
+  await prisma.$disconnect();
+});
 
 describe("POST /api/orders (checkout)", () => {
   it("creates an order from cart", async () => {
@@ -111,6 +127,90 @@ describe("POST /api/orders (checkout)", () => {
       .send({ addressId: "00000000-0000-0000-0000-000000000000" });
     expect(res.status).toBe(404);
     expectError(res.body);
+  });
+});
+
+describe("POST /api/orders (checkout concurrency)", () => {
+  it("allows only one checkout to consume the last unit of stock", async () => {
+    const lowStockProduct = await request(app)
+      .post("/api/shops/mine/products")
+      .set("Authorization", `Bearer ${sellerToken}`)
+      .send({
+        categoryId: (
+          await request(app)
+            .post("/api/categories")
+            .set("Authorization", `Bearer ${adminToken}`)
+            .send({ name: `Concurrency-${Date.now()}` })
+        ).body.data.id,
+        name: `Concurrency Product ${Date.now()}`,
+        description: "Product used to verify atomic stock updates",
+        price: 50,
+        brand: "Brand",
+        stockQuantity: 1,
+      });
+
+    const lowStockProductId = lowStockProduct.body.data.id;
+
+    const firstBuyer = await registerAndLogin({
+      email: `buyer_a_${Date.now()}@example.com`,
+    });
+    const secondBuyer = await registerAndLogin({
+      email: `buyer_b_${Date.now()}@example.com`,
+    });
+
+    const firstAddress = await request(app)
+      .post("/api/users/me/addresses")
+      .set("Authorization", `Bearer ${firstBuyer.token}`)
+      .send({
+        addressLine1: "1 Atomic St",
+        city: "Cairo",
+        state: "Cairo",
+        postalCode: "11511",
+        country: "Egypt",
+        isDefault: true,
+      });
+
+    const secondAddress = await request(app)
+      .post("/api/users/me/addresses")
+      .set("Authorization", `Bearer ${secondBuyer.token}`)
+      .send({
+        addressLine1: "2 Atomic St",
+        city: "Cairo",
+        state: "Cairo",
+        postalCode: "11511",
+        country: "Egypt",
+        isDefault: true,
+      });
+
+    await request(app)
+      .post("/api/cart/items")
+      .set("Authorization", `Bearer ${firstBuyer.token}`)
+      .send({ productId: lowStockProductId, quantity: 1 });
+
+    await request(app)
+      .post("/api/cart/items")
+      .set("Authorization", `Bearer ${secondBuyer.token}`)
+      .send({ productId: lowStockProductId, quantity: 1 });
+
+    const [firstCheckout, secondCheckout] = await Promise.all([
+      request(app)
+        .post("/api/orders")
+        .set("Authorization", `Bearer ${firstBuyer.token}`)
+        .send({ addressId: firstAddress.body.data.id }),
+      request(app)
+        .post("/api/orders")
+        .set("Authorization", `Bearer ${secondBuyer.token}`)
+        .send({ addressId: secondAddress.body.data.id }),
+    ]);
+
+    expect([firstCheckout.status, secondCheckout.status].sort()).toEqual([
+      201, 409,
+    ]);
+
+    const orderCount = await prisma.order.count({
+      where: { items: { some: { productId: lowStockProductId } } },
+    });
+    expect(orderCount).toBe(1);
   });
 });
 
