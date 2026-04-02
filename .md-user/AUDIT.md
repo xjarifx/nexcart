@@ -251,7 +251,7 @@ Two problems Redis solves: hot reads (product catalog, categories) hit Postgres 
 
 ---
 
-### 23. Auth middleware hits the database on every request
+### 23. Auth middleware hits the database on every request (COMPLETED)
 
 **Severity: Medium — performance**
 
@@ -336,7 +336,7 @@ Prisma throws `PrismaClientKnownRequestError` with specific error codes (P2002 f
 
 ---
 
-### 31. Order total calculated server-side but not verified
+### 31. Order total calculated server-side but not verified (COMPLETED)
 
 **Severity: Medium — financial accuracy**
 

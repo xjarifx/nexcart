@@ -111,7 +111,7 @@ export const findAddressByIdAndUserId = (id: string, userId: string) =>
 export const createOrderTransaction = async (data: {
   userId: string;
   addressId: string;
-  totalAmount: number;
+  totalAmount: Prisma.Decimal;
   items: Array<{
     productId: string;
     shopId: string;

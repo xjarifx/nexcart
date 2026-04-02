@@ -15,6 +15,7 @@
 
 import { AppError } from "../../types/errors.js";
 import { OrderStatus, ShopStatus } from "../../generated/prisma/enums.js";
+import { Prisma } from "../../generated/prisma/client.js";
 import { findShopByOwnerId } from "../shop/shop.repository.js";
 import {
   findOrderById,
@@ -50,11 +51,9 @@ export const checkoutService = async (userId: string, addressId: string) => {
       throw new AppError(`Shop for "${item.product.name}" is not active`, 400);
   }
 
-  const totalAmount = cart.items.reduce(
-    (sum: number, item: (typeof cart.items)[number]) =>
-      sum + Number(item.product.price) * item.quantity,
-    0,
-  );
+  const totalAmount = cart.items.reduce((sum: Prisma.Decimal, item) => {
+    return sum.plus(item.product.price.mul(item.quantity));
+  }, new Prisma.Decimal(0));
 
   const order = await createOrderTransaction({
     userId,

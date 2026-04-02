@@ -15,8 +15,8 @@
 
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { Role } from "../generated/prisma/enums.js";
 import { AppError } from "../types/errors.js";
-import { findUserById } from "../modules/auth/auth.repository.js";
 
 export const authenticate = async (
   req: Request,
@@ -33,14 +33,9 @@ export const authenticate = async (
     const secret = process.env.ACCESS_TOKEN_SECRET;
     if (!secret) throw new AppError("Server misconfiguration", 500);
 
-    // Verify signature and expiry; decoded payload contains { id: userId }
-    const decoded = jwt.verify(token, secret) as { id: string };
-
-    // Re-fetch user to ensure they still exist (e.g. account not deleted)
-    const user = await findUserById(decoded.id);
-    if (!user) throw new AppError("Unauthorized", 401);
-
-    req.user = user;
+    // Verify signature and expiry; payload contains { id, role }.
+    const decoded = jwt.verify(token, secret) as { id: string; role: Role };
+    req.user = { id: decoded.id, role: decoded.role };
     next();
   } catch (err) {
     if (err instanceof jwt.JsonWebTokenError) {

@@ -34,6 +34,15 @@ export const updateMeService = async (
   return { data: safeUser };
 };
 
+/** Returns the latest profile for the authenticated user. */
+export const getMeService = async (userId: string) => {
+  const user = await findUserById(userId);
+  if (!user) throw new AppError("User not found", 404);
+
+  const { password: _, ...safeUser } = user;
+  return { data: safeUser };
+};
+
 /** Permanently deletes the user account. */
 export const deleteMeService = async (userId: string) => {
   const existing = await findUserById(userId);
@@ -113,7 +122,10 @@ export const updateAddressService = async (
 };
 
 /** Deletes an address after verifying it belongs to the requesting user. */
-export const deleteAddressService = async (userId: string, addressId: string) => {
+export const deleteAddressService = async (
+  userId: string,
+  addressId: string,
+) => {
   const existing = await findAddressById(addressId, userId);
   if (!existing) throw new AppError("Address not found", 404);
   await deleteAddressById(addressId);

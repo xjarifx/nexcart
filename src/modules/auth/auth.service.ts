@@ -7,7 +7,7 @@
  *  - Access token  : signed JWT, short-lived (15 min), stateless
  *  - Refresh token : opaque random hex string, stored in DB, 7-day expiry
  *
- * The access token carries only { id: userId } in its payload.
+ * The access token carries { id, role } in its payload.
  * The refresh token is looked up in the database on every /refresh call
  * so it can be invalidated server-side (e.g. on logout or compromise).
  */
@@ -16,6 +16,7 @@ import "dotenv/config";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { Role } from "../../generated/prisma/enums.js";
 import { AppError } from "../../types/errors.js";
 import {
   createUser,
@@ -27,11 +28,11 @@ import {
   findUserById,
 } from "./auth.repository.js";
 
-/** Signs a short-lived JWT access token for the given user ID. */
-const signAccessToken = (userId: string): string => {
+/** Signs a short-lived JWT access token for the given user ID and role. */
+const signAccessToken = (userId: string, role: Role): string => {
   const secret = process.env.ACCESS_TOKEN_SECRET;
   if (!secret) throw new AppError("ACCESS_TOKEN_SECRET is not set", 500);
-  return jwt.sign({ id: userId }, secret, { expiresIn: "15m" });
+  return jwt.sign({ id: userId, role }, secret, { expiresIn: "15m" });
 };
 
 /** Generates a cryptographically random opaque refresh token. */
@@ -62,13 +63,12 @@ export const loginService = async (email: string, password: string) => {
 
   const user = await findUserByEmail(email);
   // Use the same error message for both "not found" and "wrong password"
-  // to avoid leaking whether an email is registered
   if (!user) throw new AppError("Invalid email or password", 401);
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new AppError("Invalid email or password", 401);
 
-  const accessToken = signAccessToken(user.id);
+  const accessToken = signAccessToken(user.id, user.role);
   const refreshToken = generateRefreshToken();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
@@ -94,7 +94,7 @@ export const refreshService = async (token: string) => {
   const user = await findUserById(stored.userId);
   if (!user) throw new AppError("User not found", 401);
 
-  const accessToken = signAccessToken(user.id);
+  const accessToken = signAccessToken(user.id, user.role);
   return { data: { accessToken } };
 };
 

@@ -6,12 +6,17 @@
  * It is `undefined` on unauthenticated routes.
  */
 
-import { User } from "../generated/prisma/client.js";
+import { Role } from "../generated/prisma/enums.js";
+
+type AuthenticatedUser = {
+  id: string;
+  role: Role;
+};
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: AuthenticatedUser;
     }
   }
 }
